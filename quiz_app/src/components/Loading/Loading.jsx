@@ -1,12 +1,10 @@
 import React from "react";
 
-import "./Loading.css";
-
 export const Loading = () => {
   return (
     <>
-      <div className="loading">
-        <div className="loading-spinner"></div>
+      <div className="fixed inset-0 bg-gray-400 bg-opacity-40 backdrop-blur-sm flex justify-center items-center z-50">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-4 border-b-4 border-green-500"></div>
       </div>
     </>
   );
