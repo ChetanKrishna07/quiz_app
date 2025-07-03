@@ -35,7 +35,8 @@ async def parse_file(file: UploadFile = File(...)):
             pdf_file = io.BytesIO(file_content)
             pdf_reader = PyPDF2.PdfReader(pdf_file)
             text_content = ""
-            for page in pdf_reader.pages:
+            for idx, page in enumerate(pdf_reader.pages):
+                text_content += f"Page {idx + 1}\n"
                 text_content += page.extract_text() + "\n"
             return {"success": True, "data": {"text_content": text_content.strip()}}
             
