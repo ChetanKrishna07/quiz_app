@@ -1,29 +1,29 @@
 @import "tailwindcss";
 
 @layer base {
-    h1 {
-        @apply text-4xl font-bold;
-    }
+  h1 {
+    @apply text-4xl font-bold;
+  }
 
-    h2 {
-        @apply text-2xl font-bold;
-    }
+  h2 {
+    @apply text-2xl font-bold;
+  }
 
-    h3 {
-        @apply text-xl font-bold;
-    }
+  h3 {
+    @apply text-xl font-bold;
+  }
 }
 
 @layer components {
-    .quiz-btn {
-        @apply bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-lg font-medium transition-colors;
-    }
-    
-    .quiz-btn:disabled {
-        @apply bg-gray-400 cursor-not-allowed;
-    }
-    
-    .quiz-btn:disabled:hover {
-        @apply bg-gray-400;
-    }
+  .quiz-btn {
+    @apply bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-lg font-medium transition-colors cursor-pointer;
+  }
+
+  .quiz-btn:disabled {
+    @apply bg-gray-400 cursor-not-allowed;
+  }
+
+  .quiz-btn:disabled:hover {
+    @apply bg-gray-400;
+  }
 }

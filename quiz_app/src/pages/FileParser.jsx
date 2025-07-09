@@ -1,28 +1,53 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Loading } from "../components/Loading";
 import { FileUpload } from "../components/FileUpload";
+import { TopicSelectionModal } from "../components/TopicSelectionModal";
 
 export const FileParser = ({
   handleFileSelect,
   textContent,
   setTextContent,
-  loading,
   selectedFile,
+  handleExtractTopics,
   handleGenerateQuiz,
 }) => {
   const navigate = useNavigate();
+  const [showModal, setShowModal] = useState(false);
+  const [extractedTopics, setExtractedTopics] = useState([]);
 
   const onGenerateQuiz = async () => {
     try {
-      const questions = await handleGenerateQuiz();
+      // First extract topics from the text
+      const topics = await handleExtractTopics();
+      console.log("FileParser.jsx Topics: ", topics);
+      if (topics && topics.length > 0) {
+        setExtractedTopics(topics);
+        setShowModal(true);
+      } else {
+        // If no topics extracted, show modal with empty topics
+        setExtractedTopics([]);
+        setShowModal(true);
+      }
+    } catch (error) {
+      console.error("Error extracting topics:", error);
+      // You could add error handling/user notification here
+    }
+  };
+
+  const onModalGenerateQuiz = async (selectedTopics, numQuestions) => {
+    try {
+      const questions = await handleGenerateQuiz(selectedTopics, numQuestions);
       if (questions && questions.length > 0) {
         navigate("/quiz");
       }
     } catch (error) {
       console.error("Error generating quiz:", error);
-      // You could add error handling/user notification here
     }
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setExtractedTopics([]);
   };
 
   return (
@@ -69,7 +94,14 @@ export const FileParser = ({
       </div>
 
       {/* Loading Overlay */}
-      {loading && <Loading />}
+
+      {/* Topic Selection Modal */}
+      <TopicSelectionModal
+        isOpen={showModal}
+        onClose={closeModal}
+        extractedTopics={extractedTopics}
+        onGenerateQuiz={onModalGenerateQuiz}
+      />
     </>
   );
 };

@@ -100,7 +100,7 @@ export const FileUpload = ({ onFileSelect, acceptedTypes = ".pdf,.txt,.docx" }) 
             <button
               type="button"
               onClick={onButtonClick}
-              className="bg-green-500 text-white px-6 py-3 rounded-lg font-medium cursor-pointer transition-colors duration-200 text-sm hover:bg-green-600"
+              className="quiz-btn"
             >
               Browse Files
             </button>

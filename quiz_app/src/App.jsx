@@ -4,7 +4,8 @@ import { FileParser } from "./pages/FileParser";
 import { QuizPage } from "./pages/QuizPage";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import "./App.css";
-import { generateQuiz } from "./utils/ai";
+import { generateQuiz, getTopicsFromText } from "./utils/ai";
+import { Loading } from "./components/Loading";
 
 function App() {
   const [loading, setLoading] = useState(false);
@@ -26,10 +27,34 @@ function App() {
     }
   };
 
-  const handleGenerateQuiz = async () => {
-    const questions = await generateQuiz(textContent, "test", [], 10);
-    setQuestions(questions);
-    return questions; // Return questions so FileParser can handle navigation
+  const handleExtractTopics = async () => {
+    try {
+      setLoading(true);
+      const topics = await getTopicsFromText(textContent);
+      console.log("App.jsx Topics: ", topics);
+      setLoading(false);
+      return topics;
+    } catch (error) {
+      console.error("Error extracting topics:", error);
+      setLoading(false);
+      return [];
+    }
+  };
+
+  const handleGenerateQuiz = async (selectedTopics, numQuestions) => {
+    console.log("App.jsx Selected topics: ", selectedTopics);
+    console.log("App.jsx Num questions: ", numQuestions);
+    try {
+      setLoading(true);
+      const questions = await generateQuiz(textContent, selectedTopics, [], numQuestions);
+      setQuestions(questions);
+      setLoading(false);
+      return questions;
+    } catch (error) {
+      console.error("Error generating quiz:", error);
+      setLoading(false);
+      return [];
+    }
   };
 
   const parseFile = async (file) => {
@@ -67,8 +92,8 @@ function App() {
                 handleFileSelect={handleFileSelect}
                 textContent={textContent}
                 setTextContent={setTextContent}
-                loading={loading}
                 selectedFile={selectedFile}
+                handleExtractTopics={handleExtractTopics}
                 handleGenerateQuiz={handleGenerateQuiz}
               />
             }
@@ -76,6 +101,8 @@ function App() {
           <Route path="/quiz" element={<QuizPage questions={questions} />} />
         </Routes>
       </BrowserRouter>
+
+      {loading && <Loading />}
     </>
   );
 }

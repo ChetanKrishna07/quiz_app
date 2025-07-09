@@ -47,6 +47,26 @@ export const QuizPage = ({ questions }) => {
     return score;
   };
 
+  const calculateTopicWiseScore = () => {
+    const topicScores = {};
+    
+    questions.forEach((question, index) => {
+      const topic = question.topic || "Unknown Topic";
+      const isCorrect = userAnswers[index] === question.answer;
+      
+      if (!topicScores[topic]) {
+        topicScores[topic] = { correct: 0, total: 0 };
+      }
+      
+      topicScores[topic].total++;
+      if (isCorrect) {
+        topicScores[topic].correct++;
+      }
+    });
+    
+    return topicScores;
+  };
+
   const restartQuiz = () => {
     setCurrentQuestionIndex(0);
     setUserAnswers({});
@@ -57,6 +77,7 @@ export const QuizPage = ({ questions }) => {
   if (showResults) {
     const score = calculateScore();
     const percentage = Math.round((score / questions.length) * 100);
+    const topicScores = calculateTopicWiseScore();
 
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -90,6 +111,53 @@ export const QuizPage = ({ questions }) => {
             </p>
           </div>
 
+          {/* Topic-wise Score */}
+          <div className="mb-8">
+            <h2 className="text-2xl font-semibold text-gray-800 border-b-2 border-gray-200 pb-2 mb-4">
+              Topic-wise Performance
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {Object.entries(topicScores).map(([topic, scores]) => {
+                const topicPercentage = Math.round((scores.correct / scores.total) * 100);
+                return (
+                  <div key={topic} className="bg-gray-50 rounded-lg p-4">
+                    <h3 className="font-medium text-gray-800 mb-2 truncate" title={topic}>
+                      {topic}
+                    </h3>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-gray-600">
+                        {scores.correct}/{scores.total} correct
+                      </span>
+                      <span
+                        className={`text-sm font-medium ${
+                          topicPercentage >= 70
+                            ? "text-green-600"
+                            : topicPercentage >= 50
+                            ? "text-yellow-600"
+                            : "text-red-600"
+                        }`}
+                      >
+                        {topicPercentage}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className={`h-2 rounded-full transition-all duration-300 ${
+                          topicPercentage >= 70
+                            ? "bg-green-500"
+                            : topicPercentage >= 50
+                            ? "bg-yellow-500"
+                            : "bg-red-500"
+                        }`}
+                        style={{ width: `${topicPercentage}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
           <div className="space-y-6 mb-8">
             <h2 className="text-2xl font-semibold text-gray-800 border-b-2 border-gray-200 pb-2">
               Review Your Answers
@@ -100,9 +168,14 @@ export const QuizPage = ({ questions }) => {
 
               return (
                 <div key={index} className="bg-gray-50 rounded-lg p-6">
-                  <h3 className="text-lg font-medium text-gray-800 mb-4">
-                    {index + 1}. {question.question}
-                  </h3>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-medium text-gray-800">
+                      {index + 1}. {question.question}
+                    </h3>
+                    <span className="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                      {question.topic || "General"}
+                    </span>
+                  </div>
                   <div className="space-y-2">
                     <div className="flex items-center">
                       <span className="font-medium text-gray-700 mr-2">
@@ -138,7 +211,7 @@ export const QuizPage = ({ questions }) => {
           <div className="text-center">
             <button
               onClick={restartQuiz}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg text-lg transition-colors duration-200 shadow-lg hover:shadow-xl"
+              className="quiz-btn"
             >
               Take Quiz Again
             </button>
@@ -178,6 +251,13 @@ export const QuizPage = ({ questions }) => {
 
         {/* Question */}
         <div className="mb-8">
+          {/* Topic Badge */}
+          <div className="flex justify-center mb-4">
+            <span className="px-4 py-2 bg-blue-100 text-blue-800 text-sm font-medium rounded-full">
+              Topic: {currentQuestion.topic || "General"}
+            </span>
+          </div>
+          
           <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">
             {currentQuestion.question}
           </h1>
@@ -224,12 +304,8 @@ export const QuizPage = ({ questions }) => {
         <div className="flex justify-between items-center">
           <button
             onClick={handlePrevious}
-            disabled={currentQuestionIndex === 0}
-            className={`px-6 py-3 rounded-lg font-semibold transition-colors duration-200 ${
-              currentQuestionIndex === 0
-                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                : "bg-gray-300 text-gray-700 hover:bg-gray-400"
-            }`}
+            disabled={currentQuestionIndex === 0}   
+            className="quiz-btn"
           >
             Previous
           </button>
@@ -252,11 +328,7 @@ export const QuizPage = ({ questions }) => {
           <button
             onClick={handleNext}
             disabled={!selectedOption}
-            className={`px-6 py-3 rounded-lg font-semibold transition-colors duration-200 ${
-              !selectedOption
-                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                : "bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl"
-            }`}
+            className="quiz-btn"
           >
             {isLastQuestion ? "Finish Quiz" : "Next"}
           </button>
