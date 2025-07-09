@@ -1,9 +1,12 @@
 import OpenAI from "openai";
+import { OPENAI_API_KEY } from "./config";
 
-const apiKey =
-  "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";
+const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
 
-const ai = new OpenAI({ apiKey: apiKey, dangerouslyAllowBrowser: true });
+const ai = new OpenAI({
+  apiKey: OPENAI_API_KEY,
+  dangerouslyAllowBrowser: true,
+});
 
 const model = "gpt-4o-mini";
 
@@ -116,7 +119,7 @@ export const generateQuiz = async (
 ) => {
   const questions = [];
   const topicsToUse = topics.length > 0 ? topics : ["general"];
-  
+
   for (let i = 0; i < numQuestions; i++) {
     const topic = topicsToUse[i % topicsToUse.length]; // Cycle through topics
     const question = await generateQuizQuestion(textContent, topic, [
