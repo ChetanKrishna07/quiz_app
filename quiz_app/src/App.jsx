@@ -32,7 +32,7 @@ function App() {
   const [currentUser, setCurrentUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
 
-  const url = "http://localhost:8000";
+  const url = process.env.REACT_APP_API_URL || "http://localhost:4000";
 
   // Monitor authentication state
   useEffect(() => {
@@ -43,7 +43,7 @@ function App() {
         setCurrentUser(user);
         setActiveUser(user.uid);
         setIsAuthenticated(true);
-        
+
         // Ensure user exists in database (only once per session)
         try {
           console.log("Ensuring user exists in database for UID:", user.uid);
@@ -204,8 +204,8 @@ function App() {
     <>
       <BrowserRouter>
         {isAuthenticated && (
-          <Navbar 
-            activeUser={activeUser} 
+          <Navbar
+            activeUser={activeUser}
             setActiveUser={setActiveUser}
             currentUser={currentUser}
             onLogout={handleLogout}
@@ -218,9 +218,9 @@ function App() {
               isAuthenticated ? (
                 <Navigate to="/dashboard" replace />
               ) : (
-                <Login 
-                  setIsAuthenticated={setIsAuthenticated} 
-                  setActiveUser={setActiveUser} 
+                <Login
+                  setIsAuthenticated={setIsAuthenticated}
+                  setActiveUser={setActiveUser}
                 />
               )
             }
@@ -231,9 +231,9 @@ function App() {
               isAuthenticated ? (
                 <Navigate to="/dashboard" replace />
               ) : (
-                <SignUp 
-                  setIsAuthenticated={setIsAuthenticated} 
-                  setActiveUser={setActiveUser} 
+                <SignUp
+                  setIsAuthenticated={setIsAuthenticated}
+                  setActiveUser={setActiveUser}
                 />
               )
             }
@@ -290,7 +290,12 @@ function App() {
           />
           <Route
             path="*"
-            element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />}
+            element={
+              <Navigate
+                to={isAuthenticated ? "/dashboard" : "/login"}
+                replace
+              />
+            }
           />
         </Routes>
       </BrowserRouter>

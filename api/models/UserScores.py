@@ -3,6 +3,7 @@ from typing import List, Dict, Optional
 from pydantic import BaseModel, validator
 from bson import ObjectId
 import logging
+import os
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -10,7 +11,14 @@ logger = logging.getLogger(__name__)
 
 # MongoDB connection
 try:
-    client = MongoClient('localhost:27017')
+    # Use environment variable for MongoDB URI, fallback to localhost for development
+    mongodb_uri = os.getenv('MONGODB_URI', 'localhost:27017')
+    if mongodb_uri.startswith('mongodb://'):
+        client = MongoClient(mongodb_uri)
+    else:
+        # Handle the case where MONGODB_URI is just the host:port
+        client = MongoClient(mongodb_uri)
+    
     db = client.quiz_app
     user_scores_collection = db.user_scores
     logger.info("Connected to MongoDB successfully")

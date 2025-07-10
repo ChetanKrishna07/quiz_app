@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:8000";
+const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:4000";
 
 // API utility functions for user score management
 
@@ -12,25 +12,30 @@ const API_BASE_URL = "http://localhost:8000";
 export const createUser = async (userId) => {
   try {
     console.log("Creating user with ID:", userId);
-    const response = await axios.post(`${API_BASE_URL}/users`, {
-      user_id: userId,
-    }, {
-      headers: {
-        'Content-Type': 'application/json',
+    const response = await axios.post(
+      `${API_BASE_URL}/users`,
+      {
+        user_id: userId,
       },
-    });
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
     console.log("User creation successful:", response.data);
     return response.data;
   } catch (error) {
     console.error("User creation error details:", {
       status: error.response?.status,
       data: error.response?.data,
-      message: error.message
+      message: error.message,
     });
-    
+
     if (error.response?.status === 400) {
       // Check if it's a "user already exists" error
-      const errorMessage = error.response?.data?.message || error.response?.data?.detail;
+      const errorMessage =
+        error.response?.data?.message || error.response?.data?.detail;
       if (errorMessage && errorMessage.includes("already exists")) {
         console.log("User already exists, continuing...");
         return { success: true, message: "User already exists" };
@@ -86,7 +91,9 @@ export const updateTopicScore = async (userId, topic, score) => {
  */
 export const getTopicScore = async (userId, topic) => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/users/${userId}/scores/${topic}`);
+    const response = await axios.get(
+      `${API_BASE_URL}/users/${userId}/scores/${topic}`
+    );
     return response.data;
   } catch (error) {
     if (error.response?.status === 404) {
