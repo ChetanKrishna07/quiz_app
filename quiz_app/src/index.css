@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+@theme {
+  --color-background: #f0f4f8; /* Light background color */
+}
+
 @layer base {
   h1 {
     @apply text-4xl font-bold;

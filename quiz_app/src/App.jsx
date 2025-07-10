@@ -6,12 +6,14 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import "./App.css";
 import { generateQuiz, getTopicsFromText } from "./utils/ai";
 import { Loading } from "./components/Loading";
+import { Navbar } from "./components/Navbar";
 
 function App() {
   const [loading, setLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [textContent, setTextContent] = useState("");
   const [questions, setQuestions] = useState([]);
+  const [userScores, setUserScores] = useState({});
 
   const url = "http://localhost:8000";
 
@@ -46,7 +48,12 @@ function App() {
     console.log("App.jsx Num questions: ", numQuestions);
     try {
       setLoading(true);
-      const questions = await generateQuiz(textContent, selectedTopics, [], numQuestions);
+      const questions = await generateQuiz(
+        textContent,
+        selectedTopics,
+        [],
+        numQuestions
+      );
       setQuestions(questions);
       setLoading(false);
       return questions;
@@ -83,6 +90,7 @@ function App() {
 
   return (
     <>
+      <Navbar />
       <BrowserRouter>
         <Routes>
           <Route
@@ -95,10 +103,12 @@ function App() {
                 selectedFile={selectedFile}
                 handleExtractTopics={handleExtractTopics}
                 handleGenerateQuiz={handleGenerateQuiz}
+                userScores={userScores}
+                setUserScores={setUserScores}
               />
             }
           />
-          <Route path="/quiz" element={<QuizPage questions={questions} />} />
+          <Route path="/quiz" element={<QuizPage questions={questions} userScores={userScores} setUserScores={setUserScores} />} />
         </Routes>
       </BrowserRouter>
 

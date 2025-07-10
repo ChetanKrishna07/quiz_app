@@ -1,7 +1,7 @@
 import React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-export const QuizPage = ({ questions }) => {
+export const QuizPage = ({ questions, userScores, setUserScores }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState({});
   const [showResults, setShowResults] = useState(false);
@@ -47,24 +47,89 @@ export const QuizPage = ({ questions }) => {
     return score;
   };
 
+  const updateUserScores = () => {
+    // Update the persistent user scores (only if userScores and setUserScores are provided)
+    if (userScores && setUserScores) {
+      const updatedScores = { ...userScores };
+      
+      questions.forEach((question, index) => {
+        const topic = question.topic || "Unknown Topic";
+        if (!updatedScores[topic]) {
+          updatedScores[topic] = 0;
+        }
+        
+        if (userAnswers[index] !== undefined) {
+          let scoreChange = userAnswers[index] === question.answer ? 0.5 : -0.5;
+          updatedScores[topic] += scoreChange;
+          // Ensure score stays between 0 and 10
+          updatedScores[topic] = Math.max(0, Math.min(10, updatedScores[topic]));
+        }
+      });
+      
+      setUserScores(updatedScores);
+    }
+  };
+
+  // Update user scores when quiz is completed
+  useEffect(() => {
+    if (showResults && Object.keys(userAnswers).length === questions.length) {
+      updateUserScores();
+    }
+  }, [showResults, userAnswers]);
+
   const calculateTopicWiseScore = () => {
     const topicScores = {};
-    
+
     questions.forEach((question, index) => {
       const topic = question.topic || "Unknown Topic";
       const isCorrect = userAnswers[index] === question.answer;
-      
+
       if (!topicScores[topic]) {
         topicScores[topic] = { correct: 0, total: 0 };
       }
-      
+
       topicScores[topic].total++;
       if (isCorrect) {
         topicScores[topic].correct++;
       }
     });
-    
+
     return topicScores;
+  };
+
+  const getCurrentTopicScores = () => {
+    // Current quiz scores only (resets each quiz)
+    const currentScores = {};
+    
+    questions.forEach((question, index) => {
+      const topic = question.topic || "Unknown Topic";
+      
+      if (!currentScores[topic]) {
+        currentScores[topic] = 0;
+      }
+      
+      // Only count answered questions
+      if (userAnswers[index] !== undefined) {
+        const isCorrect = userAnswers[index] === question.answer;
+        currentScores[topic] += isCorrect ? 0.5 : -0.5;
+        // Ensure score stays between 0 and 10
+        currentScores[topic] = Math.max(0, Math.min(10, currentScores[topic]));
+      }
+    });
+    
+    return currentScores;
+  };
+
+  const getOverallUserScores = () => {
+    // Return the persistent user scores across all quizzes
+    return userScores || {};
+  };
+
+  const getTopicColor = (score) => {
+    if (score >= 7) return { bg: "bg-green-500", text: "text-green-600" };
+    if (score >= 5) return { bg: "bg-yellow-500", text: "text-yellow-600" };
+    if (score >= 3) return { bg: "bg-orange-500", text: "text-orange-600" };
+    return { bg: "bg-red-500", text: "text-red-600" };
   };
 
   const restartQuiz = () => {
@@ -78,6 +143,7 @@ export const QuizPage = ({ questions }) => {
     const score = calculateScore();
     const percentage = Math.round((score / questions.length) * 100);
     const topicScores = calculateTopicWiseScore();
+    const overallScores = getOverallUserScores();
 
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -114,43 +180,22 @@ export const QuizPage = ({ questions }) => {
           {/* Topic-wise Score */}
           <div className="mb-8">
             <h2 className="text-2xl font-semibold text-gray-800 border-b-2 border-gray-200 pb-2 mb-4">
-              Topic-wise Performance
+              Current Quiz Performance
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {Object.entries(topicScores).map(([topic, scores]) => {
-                const topicPercentage = Math.round((scores.correct / scores.total) * 100);
                 return (
                   <div key={topic} className="bg-gray-50 rounded-lg p-4">
-                    <h3 className="font-medium text-gray-800 mb-2 truncate" title={topic}>
+                    <h3
+                      className="font-medium text-gray-800 mb-2 truncate"
+                      title={topic}
+                    >
                       {topic}
                     </h3>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm text-gray-600">
+                    <div className="flex items-center justify-between">
+                      <span className="text-lg font-semibold text-gray-700">
                         {scores.correct}/{scores.total} correct
                       </span>
-                      <span
-                        className={`text-sm font-medium ${
-                          topicPercentage >= 70
-                            ? "text-green-600"
-                            : topicPercentage >= 50
-                            ? "text-yellow-600"
-                            : "text-red-600"
-                        }`}
-                      >
-                        {topicPercentage}%
-                      </span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className={`h-2 rounded-full transition-all duration-300 ${
-                          topicPercentage >= 70
-                            ? "bg-green-500"
-                            : topicPercentage >= 50
-                            ? "bg-yellow-500"
-                            : "bg-red-500"
-                        }`}
-                        style={{ width: `${topicPercentage}%` }}
-                      ></div>
                     </div>
                   </div>
                 );
@@ -208,11 +253,45 @@ export const QuizPage = ({ questions }) => {
             })}
           </div>
 
+          {/* Overall User Topic Scores */}
+          {Object.keys(overallScores).length > 0 && (
+            <div className="mb-8">
+              <h2 className="text-2xl font-semibold text-gray-800 border-b-2 border-gray-200 pb-2 mb-4">
+                Overall Topic Mastery (Across All Quizzes)
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {Object.entries(overallScores).map(([topic, score]) => {
+                  const colors = getTopicColor(score);
+                  const percentage = (score / 10) * 100;
+                  
+                  return (
+                    <div key={topic} className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-medium text-gray-800 text-sm truncate" title={topic}>
+                          {topic}
+                        </h3>
+                        <span className={`text-sm font-bold ${colors.text}`}>
+                          {score.toFixed(1)}/10
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-3">
+                        <div
+                          className={`h-3 rounded-full transition-all duration-300 ${colors.bg}`}
+                          style={{ width: `${percentage}%` }}
+                        ></div>
+                      </div>
+                      <div className="mt-2 text-xs text-gray-600">
+                        Mastery Level: {score >= 7 ? "Expert" : score >= 5 ? "Good" : score >= 3 ? "Learning" : "Beginner"}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           <div className="text-center">
-            <button
-              onClick={restartQuiz}
-              className="quiz-btn"
-            >
+            <button onClick={restartQuiz} className="quiz-btn">
               Take Quiz Again
             </button>
           </div>
@@ -257,7 +336,7 @@ export const QuizPage = ({ questions }) => {
               Topic: {currentQuestion.topic || "General"}
             </span>
           </div>
-          
+
           <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">
             {currentQuestion.question}
           </h1>
@@ -304,7 +383,7 @@ export const QuizPage = ({ questions }) => {
         <div className="flex justify-between items-center">
           <button
             onClick={handlePrevious}
-            disabled={currentQuestionIndex === 0}   
+            disabled={currentQuestionIndex === 0}
             className="quiz-btn"
           >
             Previous

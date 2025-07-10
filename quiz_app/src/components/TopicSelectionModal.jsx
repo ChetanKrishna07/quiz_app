@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 
-export const TopicSelectionModal = ({ 
-  isOpen, 
-  onClose, 
-  extractedTopics, 
-  onGenerateQuiz 
+export const TopicSelectionModal = ({
+  isOpen,
+  onClose,
+  extractedTopics,
+  onGenerateQuiz,
+  userScores,
+  setUserScores,
 }) => {
   const [selectedTopics, setSelectedTopics] = useState([]);
   const [newTopic, setNewTopic] = useState("");
@@ -17,13 +19,18 @@ export const TopicSelectionModal = ({
   // Sync selectedTopics with extractedTopics when modal opens
   useEffect(() => {
     if (isOpen && extractedTopics && extractedTopics.length > 0) {
-      console.log("TopicSelectionModal.jsx useEffect: Setting topics", extractedTopics);
+      console.log(
+        "TopicSelectionModal.jsx useEffect: Setting topics",
+        extractedTopics
+      );
       setSelectedTopics([...extractedTopics]);
     }
   }, [isOpen, extractedTopics]);
 
   const removeTopic = (indexToRemove) => {
-    setSelectedTopics(selectedTopics.filter((_, index) => index !== indexToRemove));
+    setSelectedTopics(
+      selectedTopics.filter((_, index) => index !== indexToRemove)
+    );
   };
 
   const addTopic = () => {
@@ -34,13 +41,19 @@ export const TopicSelectionModal = ({
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       addTopic();
     }
   };
 
   const handleGenerateQuiz = () => {
+    // Add the topics into the data/user_points.js file
     if (selectedTopics.length > 0) {
+      for (let topic of selectedTopics) {
+        if (!userScores[topic]) {
+          userScores[topic] = 0; // Initialize score for the topic if not already
+        }
+      }
       onGenerateQuiz(selectedTopics, numQuestions);
       onClose();
     }
@@ -54,20 +67,34 @@ export const TopicSelectionModal = ({
         <div className="p-6">
           {/* Header */}
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Customize Your Quiz</h2>
+            <h2 className="text-2xl font-bold text-gray-900">
+              Customize Your Quiz
+            </h2>
             <button
               onClick={onClose}
               className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
 
           {/* Topics Section */}
           <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-3">Selected Topics</h3>
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">
+              Selected Topics
+            </h3>
             {selectedTopics.length > 0 ? (
               <div className="flex flex-wrap gap-2 mb-4">
                 {selectedTopics.map((topic, index) => (
@@ -80,15 +107,27 @@ export const TopicSelectionModal = ({
                       onClick={() => removeTopic(index)}
                       className="text-blue-600 hover:text-red-600 transition-colors"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
                       </svg>
                     </button>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-gray-500 mb-4 italic">No topics selected. Add some topics below to create your quiz.</p>
+              <p className="text-gray-500 mb-4 italic">
+                No topics selected. Add some topics below to create your quiz.
+              </p>
             )}
 
             {/* Add New Topic */}
@@ -142,7 +181,8 @@ export const TopicSelectionModal = ({
               disabled={selectedTopics.length === 0}
               className="quiz-btn"
             >
-              Generate Quiz ({selectedTopics.length} topics, {numQuestions} questions)
+              Generate Quiz ({selectedTopics.length} topics, {numQuestions}{" "}
+              questions)
             </button>
           </div>
         </div>

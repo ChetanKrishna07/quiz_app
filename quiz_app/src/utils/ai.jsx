@@ -117,21 +117,45 @@ export const generateQuiz = async (
   previousQuestions,
   numQuestions
 ) => {
-  const questions = [];
+  // Replace this with mock questions for testing
+  const mockQuestions = [];
   const topicsToUse = topics.length > 0 ? topics : ["general"];
 
   for (let i = 0; i < numQuestions; i++) {
-    const topic = topicsToUse[i % topicsToUse.length]; // Cycle through topics
-    const question = await generateQuizQuestion(textContent, topic, [
-      ...previousQuestions,
-      ...questions,
-    ]);
-    const parsedQuestion = await parseQuizQuestion(question);
-    if (parsedQuestion) {
-      // Ensure the topic is included in the question object
-      parsedQuestion.topic = topic;
-      questions.push(parsedQuestion);
-    }
+    mockQuestions.push({
+      question: `Mock question ${i + 1} on topic ${
+        topicsToUse[i % topicsToUse.length]
+      }`,
+      options: ["Option A", "Option B", "Option C", "Option D"],
+      answer: "Option A",
+      topic: topicsToUse[i % topicsToUse.length],
+    });
   }
-  return questions;
+
+  return mockQuestions;
 };
+
+// export const generateQuiz = async (
+//   textContent,
+//   topics,
+//   previousQuestions,
+//   numQuestions
+// ) => {
+//   const questions = [];
+//   const topicsToUse = topics.length > 0 ? topics : ["general"];
+
+//   for (let i = 0; i < numQuestions; i++) {
+//     const topic = topicsToUse[i % topicsToUse.length]; // Cycle through topics
+//     const question = await generateQuizQuestion(textContent, topic, [
+//       ...previousQuestions,
+//       ...questions,
+//     ]);
+//     const parsedQuestion = await parseQuizQuestion(question);
+//     if (parsedQuestion) {
+//       // Ensure the topic is included in the question object
+//       parsedQuestion.topic = topic;
+//       questions.push(parsedQuestion);
+//     }
+//   }
+//   return questions;
+// };
