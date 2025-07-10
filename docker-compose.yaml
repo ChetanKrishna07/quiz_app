@@ -1,7 +1,8 @@
-version: '3.8'
 services:
   api:
     build: ./api
+    environment:
+      - MONGO_URI=${MONGO_URI}
     ports:
       - "4000:4000"
     restart: unless-stopped
@@ -11,8 +12,10 @@ services:
       context: ./quiz_app
       args:
         - REACT_APP_API_URL=http://localhost:4000
+        - VITE_OPENAI_API_KEY=${OPENAI_API_KEY}
     environment:
       - REACT_APP_API_URL=http://localhost:4000
+      - VITE_OPENAI_API_KEY=${OPENAI_API_KEY}
     ports:
       - "3000:80"
     depends_on:

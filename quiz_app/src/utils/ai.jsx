@@ -1,7 +1,6 @@
 import OpenAI from "openai";
-import { OPENAI_API_KEY } from "./config";
 
-// const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
 
 const ai = new OpenAI({
   apiKey: OPENAI_API_KEY,
@@ -18,7 +17,11 @@ const extractTopics = async (textContent, currentTopics = []) => {
     ${textContent}
     
     If the following topics are relevant, include them in the output exactly as they are without any modification along with any new topics you find:
-    ${currentTopics && currentTopics.length > 0 ? currentTopics.join(", ") : "None"}
+    ${
+      currentTopics && currentTopics.length > 0
+        ? currentTopics.join(", ")
+        : "None"
+    }
 
     OUTPUTFORMAT:
     {

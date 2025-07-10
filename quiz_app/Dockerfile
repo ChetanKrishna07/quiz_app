@@ -2,6 +2,9 @@
 FROM node:18-alpine AS builder
 WORKDIR /app
 
+ARG VITE_OPENAI_API_KEY
+ENV VITE_OPENAI_API_KEY=$VITE_OPENAI_API_KEY
+
 # Copy package files first for better caching
 COPY package*.json ./
 
@@ -16,14 +19,16 @@ COPY . .
 RUN rm -rf node_modules/.cache && \
     npm run build
 
-# Stage 2: serve with nginx
-FROM nginx:stable-alpine
-# wipe default content (optional, but clean)
-RUN rm -rf /usr/share/nginx/html/*
-# copy the dist folder
-COPY --from=builder /app/dist /usr/share/nginx/html/
-# copy custom nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Stage 2: serve with caddy
+FROM caddy:2-alpine
 
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+# copy the dist folder into Caddy's root
+COPY --from=builder /app/dist /usr/share/caddy
+
+# Copy Caddyfile into the container
+COPY Caddyfile /etc/caddy/Caddyfile
+
+# Expose port 80 for http and 443 for https
+EXPOSE 80 443
+
+# No need to run a command, Caddy will start automatically

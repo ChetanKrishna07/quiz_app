@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 # MongoDB connection
 try:
     # Use environment variable for MongoDB URI, fallback to localhost for development
-    mongodb_uri = os.getenv('MONGODB_URI', 'localhost:27017')
+    mongodb_uri = os.getenv('MONGO_URI', 'localhost:27017')
     if mongodb_uri.startswith('mongodb://'):
         client = MongoClient(mongodb_uri)
     else:
