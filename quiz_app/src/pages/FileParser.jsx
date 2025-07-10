@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FileUpload } from "../components/FileUpload";
-import { TopicSelectionModal } from "../components/TopicSelectionModal";
 import { Loading } from "../components/Loading";
+
 
 export const FileParser = ({
   handleFileSelect,
@@ -15,50 +15,43 @@ export const FileParser = ({
   setUserScores,
 }) => {
   const navigate = useNavigate();
-  const [showModal, setShowModal] = useState(false);
-  const [extractedTopics, setExtractedTopics] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const onGenerateQuiz = async () => {
+    console.log("FileParser.jsx onGenerateQuiz triggered");
     try {
       setLoading(true);
-      // First extract topics from the text
+      // Extract topics from the text content
       const topics = await handleExtractTopics();
-      console.log("FileParser.jsx Topics: ", topics);
+      console.log("FileParser.jsx Topics extracted: ", topics);
+      
+      // Navigate to topic selection page with extracted topics
+      console.log("FileParser.jsx Navigating to topic selection with topics:", topics);
+      navigate("/topic-selection", { 
+        state: { 
+          extractedTopics: topics || [],
+          textContent: textContent,
+          selectedFile: selectedFile
+        } 
+      });
       setLoading(false);
-      if (topics && topics.length > 0) {
-        setExtractedTopics(topics);
-        setShowModal(true);
-      } else {
-        // If no topics extracted, show modal with empty topics
-        setExtractedTopics([]);
-        setShowModal(true);
-      }
     } catch (error) {
       console.error("Error extracting topics:", error);
       setLoading(false);
-      // You could add error handling/user notification here
+      // Navigate to topic selection with empty topics if extraction fails
+      navigate("/topic-selection", { 
+        state: { 
+          extractedTopics: [],
+          textContent: textContent,
+          selectedFile: selectedFile
+        } 
+      });
     }
   };
 
-  const onModalGenerateQuiz = async (selectedTopics, numQuestions) => {
-    try {
-      setLoading(true);
-      const questions = await handleGenerateQuiz(selectedTopics, numQuestions);
-      setLoading(false);
-      if (questions && questions.length > 0) {
-        navigate("/quiz");
-      }
-    } catch (error) {
-      console.error("Error generating quiz:", error);
-      setLoading(false);
-    }
-  };
+  // These functions are no longer needed as we're using navigation
 
-  const closeModal = () => {
-    setShowModal(false);
-    setExtractedTopics([]);
-  };
+
 
   return (
     <>
@@ -95,7 +88,12 @@ export const FileParser = ({
             <button
               className="quiz-btn"
               disabled={!selectedFile && !textContent.trim()}
-              onClick={onGenerateQuiz}
+              onClick={() => {
+                console.log("FileParser.jsx Button clicked!");
+                console.log("FileParser.jsx selectedFile:", selectedFile);
+                console.log("FileParser.jsx textContent length:", textContent.length);
+                onGenerateQuiz();
+              }}
             >
               Generate Quiz
             </button>
@@ -105,16 +103,6 @@ export const FileParser = ({
 
       {/* Loading Overlay */}
       {loading && <Loading />}
-
-      {/* Topic Selection Modal */}
-      <TopicSelectionModal
-        isOpen={showModal}
-        onClose={closeModal}
-        extractedTopics={extractedTopics}
-        onGenerateQuiz={onModalGenerateQuiz}
-        userScores={userScores}
-        setUserScores={setUserScores}
-      />
     </>
   );
 };

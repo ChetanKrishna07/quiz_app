@@ -1,7 +1,7 @@
 import OpenAI from "openai";
 import { OPENAI_API_KEY } from "./config";
 
-const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+// const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
 
 const ai = new OpenAI({
   apiKey: OPENAI_API_KEY,
@@ -10,13 +10,16 @@ const ai = new OpenAI({
 
 const model = "gpt-4o-mini";
 
-const extractTopics = async (textContent) => {
+const extractTopics = async (textContent, currentTopics = []) => {
   const prompt = `
     You are a topic extraction assistant. Please analyze the following text and extract 5-8 key topics that would be suitable for creating quiz questions.
     
     Text content:
     ${textContent}
     
+    If the following topics are relevant, include them in the output exactly as they are without any modification along with any new topics you find:
+    ${currentTopics && currentTopics.length > 0 ? currentTopics.join(", ") : "None"}
+
     OUTPUTFORMAT:
     {
         "topics": ["Topic 1", "Topic 2", "Topic 3", "Topic 4", "Topic 5"]
@@ -104,35 +107,11 @@ const parseQuizQuestion = async (question) => {
   }
 };
 
-export const getTopicsFromText = async (textContent) => {
-  const topicsResponse = await extractTopics(textContent);
+export const getTopicsFromText = async (textContent, currentTopics = []) => {
+  const topicsResponse = await extractTopics(textContent, currentTopics);
   const topics = await parseTopics(topicsResponse);
   console.log("ai.jsx Topics: ", topics);
   return topics;
-};
-
-export const generateQuiz = async (
-  textContent,
-  topics,
-  previousQuestions,
-  numQuestions
-) => {
-  // Replace this with mock questions for testing
-  const mockQuestions = [];
-  const topicsToUse = topics.length > 0 ? topics : ["general"];
-
-  for (let i = 0; i < numQuestions; i++) {
-    mockQuestions.push({
-      question: `Mock question ${i + 1} on topic ${
-        topicsToUse[i % topicsToUse.length]
-      }`,
-      options: ["Option A", "Option B", "Option C", "Option D"],
-      answer: "Option A",
-      topic: topicsToUse[i % topicsToUse.length],
-    });
-  }
-
-  return mockQuestions;
 };
 
 // export const generateQuiz = async (
@@ -141,21 +120,45 @@ export const generateQuiz = async (
 //   previousQuestions,
 //   numQuestions
 // ) => {
-//   const questions = [];
+//   // Replace this with mock questions for testing
+//   const mockQuestions = [];
 //   const topicsToUse = topics.length > 0 ? topics : ["general"];
 
 //   for (let i = 0; i < numQuestions; i++) {
-//     const topic = topicsToUse[i % topicsToUse.length]; // Cycle through topics
-//     const question = await generateQuizQuestion(textContent, topic, [
-//       ...previousQuestions,
-//       ...questions,
-//     ]);
-//     const parsedQuestion = await parseQuizQuestion(question);
-//     if (parsedQuestion) {
-//       // Ensure the topic is included in the question object
-//       parsedQuestion.topic = topic;
-//       questions.push(parsedQuestion);
-//     }
+//     mockQuestions.push({
+//       question: `Mock question ${i + 1} on topic ${
+//         topicsToUse[i % topicsToUse.length]
+//       }`,
+//       options: ["Option A", "Option B", "Option C", "Option D"],
+//       answer: "Option A",
+//       topic: topicsToUse[i % topicsToUse.length],
+//     });
 //   }
-//   return questions;
+
+//   return mockQuestions;
 // };
+
+export const generateQuiz = async (
+  textContent,
+  topics,
+  previousQuestions,
+  numQuestions
+) => {
+  const questions = [];
+  const topicsToUse = topics.length > 0 ? topics : ["general"];
+
+  for (let i = 0; i < numQuestions; i++) {
+    const topic = topicsToUse[i % topicsToUse.length]; // Cycle through topics
+    const question = await generateQuizQuestion(textContent, topic, [
+      ...previousQuestions,
+      ...questions,
+    ]);
+    const parsedQuestion = await parseQuizQuestion(question);
+    if (parsedQuestion) {
+      // Ensure the topic is included in the question object
+      parsedQuestion.topic = topic;
+      questions.push(parsedQuestion);
+    }
+  }
+  return questions;
+};

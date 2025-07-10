@@ -24,3 +24,5 @@ dist-ssr
 *.sw?
 .env
 src/utils/config.js
+.github/
+.cursor/

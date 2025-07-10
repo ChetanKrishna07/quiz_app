@@ -47,7 +47,7 @@ export const QuizPage = ({ questions, userScores, setUserScores }) => {
     return score;
   };
 
-  const updateUserScores = () => {
+  const updateUserScores = async () => {
     // Update the persistent user scores (only if userScores and setUserScores are provided)
     if (userScores && setUserScores) {
       const updatedScores = { ...userScores };
@@ -66,15 +66,20 @@ export const QuizPage = ({ questions, userScores, setUserScores }) => {
         }
       });
       
-      setUserScores(updatedScores);
+      // Call the async function to update scores in database
+      await setUserScores(updatedScores);
     }
   };
 
   // Update user scores when quiz is completed
   useEffect(() => {
-    if (showResults && Object.keys(userAnswers).length === questions.length) {
-      updateUserScores();
-    }
+    const handleScoreUpdate = async () => {
+      if (showResults && Object.keys(userAnswers).length === questions.length) {
+        await updateUserScores();
+      }
+    };
+    
+    handleScoreUpdate();
   }, [showResults, userAnswers]);
 
   const calculateTopicWiseScore = () => {

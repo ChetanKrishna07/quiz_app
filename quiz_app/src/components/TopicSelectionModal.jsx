@@ -12,18 +12,26 @@ export const TopicSelectionModal = ({
   const [newTopic, setNewTopic] = useState("");
   const [numQuestions, setNumQuestions] = useState(10);
 
-  console.log("TopicSelectionModal.jsx Extracted topics: ", extractedTopics);
-  console.log("TopicSelectionModal.jsx Selected topics: ", selectedTopics);
-  console.log("TopicSelectionModal.jsx Is Open: ", isOpen);
+  console.log("TopicSelectionModal.jsx Rendered with:");
+  console.log("  - Extracted topics: ", extractedTopics);
+  console.log("  - Selected topics: ", selectedTopics);
+  console.log("  - Is Open: ", isOpen);
+  console.log("  - Topics array length:", extractedTopics ? extractedTopics.length : 'undefined');
 
   // Sync selectedTopics with extractedTopics when modal opens
   useEffect(() => {
+    console.log("TopicSelectionModal.jsx useEffect triggered");
+    console.log("  - isOpen:", isOpen);
+    console.log("  - extractedTopics:", extractedTopics);
+    
     if (isOpen && extractedTopics && extractedTopics.length > 0) {
       console.log(
         "TopicSelectionModal.jsx useEffect: Setting topics",
         extractedTopics
       );
       setSelectedTopics([...extractedTopics]);
+    } else if (isOpen) {
+      console.log("TopicSelectionModal.jsx useEffect: Modal opened but no topics to set");
     }
   }, [isOpen, extractedTopics]);
 
@@ -47,8 +55,13 @@ export const TopicSelectionModal = ({
   };
 
   const handleGenerateQuiz = () => {
+    console.log("TopicSelectionModal.jsx handleGenerateQuiz called");
+    console.log("  - selectedTopics:", selectedTopics);
+    console.log("  - selectedTopics.length:", selectedTopics.length);
+    
     // Add the topics into the data/user_points.js file
     if (selectedTopics.length > 0) {
+      console.log("TopicSelectionModal.jsx Processing topics for quiz generation");
       for (let topic of selectedTopics) {
         if (!userScores[topic]) {
           userScores[topic] = 0; // Initialize score for the topic if not already
@@ -56,6 +69,8 @@ export const TopicSelectionModal = ({
       }
       onGenerateQuiz(selectedTopics, numQuestions);
       onClose();
+    } else {
+      console.log("TopicSelectionModal.jsx No topics selected, not generating quiz");
     }
   };
 
