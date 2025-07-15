@@ -19,7 +19,7 @@ try:
     db = client.quiz_app
     
     # Collections
-    user_scores_collection = db.user_scores
+    users_collection = db.users
     documents_collection = db.documents
     
     logger.info("Connected to MongoDB successfully")

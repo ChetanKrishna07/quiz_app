@@ -17,10 +17,10 @@ import { onAuthStateChanged, signOut } from "firebase/auth";
 import {
   createUser,
   getUserScores,
-  updateTopicScore,
   convertTopicScoresToObject,
   updateMultipleTopicScores,
 } from "./utils/api";
+import { ResultsPage } from "./pages/ResultsPage";
 
 function App() {
   const [loading, setLoading] = useState(false);
@@ -300,6 +300,14 @@ function App() {
                   setUserScores={updateUserScoresInDB}
                   activeUser={activeUser}
                 />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/results"
+            element={
+              <ProtectedRoute>
+                <ResultsPage />
               </ProtectedRoute>
             }
           />

@@ -1,7 +1,7 @@
 # Quiz App API Documentation
 
 ## Overview
-This is a FastAPI-based quiz application that provides file parsing capabilities and user score management with MongoDB integration.
+This is a FastAPI-based quiz application that provides file parsing capabilities and user management with MongoDB integration.
 
 ## Base URL
 ```
@@ -57,17 +57,21 @@ curl -X POST "http://localhost:8000/parse_file" \
 
 ---
 
-## User Score Management Endpoints
+## User Management Endpoints
 
 ### 2. Create New User
-Create a new user with empty topic scores.
+Create a new user with optional topic scores.
 
 **Endpoint:** `POST /users`
 
 **Request:**
 ```json
 {
-  "user_id": "string"
+  "user_id": "string",
+  "topic_scores": [
+    {"mathematics": 8.5},
+    {"science": 9.2}
+  ]
 }
 ```
 
@@ -78,7 +82,10 @@ Create a new user with empty topic scores.
   "data": {
     "_id": "507f1f77bcf86cd799439011",
     "user_id": "user123",
-    "topic_scores": []
+    "topic_scores": [
+      {"mathematics": 8.5},
+      {"science": 9.2}
+    ]
   },
   "message": "User user123 created successfully"
 }
@@ -92,127 +99,13 @@ Create a new user with empty topic scores.
 ```bash
 curl -X POST "http://localhost:8000/users" \
      -H "Content-Type: application/json" \
-     -d '{"user_id": "user123"}'
+     -d '{"user_id": "user123", "topic_scores": [{"mathematics": 8.5}]}'
 ```
 
-### 3. Get All Topic Scores for a User
-Retrieve all topic scores for a specific user.
+### 3. Get All Users
+Retrieve all users in the system.
 
-**Endpoint:** `GET /users/{user_id}/scores`
-
-**Parameters:**
-- `user_id` (path): String - The unique identifier for the user
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "_id": "507f1f77bcf86cd799439011",
-    "user_id": "user123",
-    "topic_scores": [
-      {"mathematics": 8.5},
-      {"science": 9.2},
-      {"history": 7.8}
-    ]
-  }
-}
-```
-
-**Error Responses:**
-- `404 Not Found`: User not found
-- `500 Internal Server Error`: Database connection issues
-
-**Example:**
-```bash
-curl -X GET "http://localhost:8000/users/user123/scores"
-```
-
-### 4. Update Topic Score
-Update or add a topic score for a specific user.
-
-**Endpoint:** `PUT /users/{user_id}/scores`
-
-**Parameters:**
-- `user_id` (path): String - The unique identifier for the user
-
-**Request:**
-```json
-{
-  "topic": "mathematics",
-  "score": 8.5
-}
-```
-
-**Validation Rules:**
-- `topic`: Non-empty string
-- `score`: Float between 0 and 10
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "_id": "507f1f77bcf86cd799439011",
-    "user_id": "user123",
-    "topic_scores": [
-      {"mathematics": 8.5},
-      {"science": 9.2}
-    ]
-  }
-}
-```
-
-**Behavior:**
-- If the user doesn't exist, a new user will be created with the provided score
-- If the topic already exists, it will be updated
-- If the topic doesn't exist, it will be added to the user's scores
-
-**Error Responses:**
-- `400 Bad Request`: Invalid score (not between 0-10) or empty topic
-- `500 Internal Server Error`: Database connection issues
-
-**Example:**
-```bash
-curl -X PUT "http://localhost:8000/users/user123/scores" \
-     -H "Content-Type: application/json" \
-     -d '{"topic": "mathematics", "score": 85.5}'
-```
-
-### 5. Get Specific Topic Score
-Retrieve a specific topic score for a user.
-
-**Endpoint:** `GET /users/{user_id}/scores/{topic}`
-
-**Parameters:**
-- `user_id` (path): String - The unique identifier for the user
-- `topic` (path): String - The topic name
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "user_id": "user123",
-    "topic": "mathematics",
-    "score": 8.5
-  }
-}
-```
-
-**Error Responses:**
-- `404 Not Found`: User or topic not found
-- `500 Internal Server Error`: Database connection issues
-
-**Example:**
-```bash
-curl -X GET "http://localhost:8000/users/user123/scores/mathematics"
-```
-
-### 6. Get All Users' Scores
-Retrieve scores for all users in the system.
-
-**Endpoint:** `GET /users/scores`
+**Endpoint:** `GET /users`
 
 **Response:**
 ```json
@@ -243,22 +136,26 @@ Retrieve scores for all users in the system.
 
 **Example:**
 ```bash
-curl -X GET "http://localhost:8000/users/scores"
+curl -X GET "http://localhost:8000/users"
 ```
 
-### 7. Delete User Scores
-Delete all scores for a specific user.
+### 4. Get a Single User
+Retrieve a user by user_id.
 
-**Endpoint:** `DELETE /users/{user_id}/scores`
-
-**Parameters:**
-- `user_id` (path): String - The unique identifier for the user
+**Endpoint:** `GET /users/{user_id}`
 
 **Response:**
 ```json
 {
   "success": true,
-  "message": "All scores for user user123 have been deleted"
+  "data": {
+    "_id": "507f1f77bcf86cd799439011",
+    "user_id": "user123",
+    "topic_scores": [
+      {"mathematics": 8.5},
+      {"science": 9.2}
+    ]
+  }
 }
 ```
 
@@ -268,31 +165,42 @@ Delete all scores for a specific user.
 
 **Example:**
 ```bash
-curl -X DELETE "http://localhost:8000/users/user123/scores"
+curl -X GET "http://localhost:8000/users/user123"
 ```
 
----
+### 5. Delete a User
+Delete a user by user_id.
 
-## Document Endpoints
+**Endpoint:** `DELETE /users/{user_id}`
 
-### Create Document
-**POST** `/documents`
-
-Create a new document with content.
-
-**Request Body:**
+**Response:**
 ```json
 {
-  "user_id": "user123",
-  "title": "Mathematics and Physics Study Guide",
-  "document_content": "This is the content of the document...",
+  "success": true,
+  "message": "User user123 has been deleted"
+}
+```
+
+**Error Responses:**
+- `404 Not Found`: User not found
+- `500 Internal Server Error`: Database connection issues
+
+**Example:**
+```bash
+curl -X DELETE "http://localhost:8000/users/user123"
+```
+
+### 6. Update User Scores
+Replace all topic scores for a user.
+
+**Endpoint:** `PUT /users/{user_id}/scores`
+
+**Request:**
+```json
+{
   "topic_scores": [
-    {"mathematics": 8.0},
-    {"physics": 7.5}
-  ],
-  "questions": [
-    "What is the derivative of x²?",
-    "Explain Newton's laws of motion."
+    {"mathematics": 9.0},
+    {"science": 8.7}
   ]
 }
 ```
@@ -302,60 +210,93 @@ Create a new document with content.
 {
   "success": true,
   "data": {
-    "id": "507f1f77bcf86cd799439011",
+    "_id": "507f1f77bcf86cd799439011",
     "user_id": "user123",
-    "title": "Mathematics and Physics Study Guide",
     "topic_scores": [
-      {"mathematics": 8.0},
-      {"physics": 7.5}
-    ],
-    "questions": [
-      "What is the derivative of x²?",
-      "Explain Newton's laws of motion."
-    ],
-    "document_content": "This is the content of the document...",
-    "created_at": "2024-01-01T12:00:00Z",
-    "updated_at": "2024-01-01T12:00:00Z"
+      {"mathematics": 9.0},
+      {"science": 8.7}
+    ]
   },
-  "message": "Document created successfully"
+  "message": "User user123 scores updated successfully"
 }
 ```
 
-### Get Document by ID
-**GET** `/documents/{document_id}`
+**Error Responses:**
+- `404 Not Found`: User not found
+- `500 Internal Server Error`: Database connection issues
 
-Retrieve a specific document by its ID.
+**Example:**
+```bash
+curl -X PUT "http://localhost:8000/users/user123/scores" \
+     -H "Content-Type: application/json" \
+     -d '{"topic_scores": [{"mathematics": 9.0}, {"science": 8.7}]}'
+```
+
+---
+
+## Document Management Endpoints
+
+### 1. Create Document
+Create a new document for a user.
+
+**Endpoint:** `POST /documents`
+
+**Request:**
+```json
+{
+  "user_id": "string",
+  "title": "string",
+  "document_content": "string",
+  "topic_scores": [
+    {"mathematics": 8.5},
+    {"science": 9.2}
+  ],
+  "questions": [
+    "What is the capital of France?",
+    "Explain Newton's second law."
+  ]
+}
+```
 
 **Response:**
 ```json
 {
   "success": true,
   "data": {
-    "id": "507f1f77bcf86cd799439011",
+    "_id": "507f1f77bcf86cd799439011",
     "user_id": "user123",
-    "title": "Mathematics and Physics Study Guide",
+    "title": "Physics Notes",
+    "document_content": "Content of the document...",
     "topic_scores": [
-      {"math": 8.5},
-      {"science": 7.2}
+      {"mathematics": 8.5},
+      {"science": 9.2}
     ],
-    "document_content": "This is the content of the document...",
-    "created_at": "2024-01-01T12:00:00Z",
-    "updated_at": "2024-01-01T12:00:00Z"
-  }
+    "questions": [
+      "What is the capital of France?",
+      "Explain Newton's second law."
+    ],
+    "created_at": "2024-06-01T12:00:00Z",
+    "updated_at": "2024-06-01T12:00:00Z"
+  },
+  "message": "Document created successfully"
 }
 ```
 
-### Get All Documents
-**GET** `/documents`
+**Error Responses:**
+- `500 Internal Server Error`: Database connection issues
 
-Get all documents. Optionally filter by user_id.
+**Example:**
+```bash
+curl -X POST "http://localhost:8000/documents" \
+     -H "Content-Type: application/json" \
+     -d '{"user_id": "user123", "title": "Physics Notes", "document_content": "Content...", "topic_scores": [{"mathematics": 8.5}], "questions": ["What is the capital of France?"]}'
+```
 
-**Query Parameters:**
-- `user_id` (optional): Filter documents by user ID
+### 2. Get All Documents
+Retrieve all documents, optionally filtered by user_id.
 
-**Examples:**
-- `GET /documents` - Get all documents
-- `GET /documents?user_id=user123` - Get documents for specific user
+**Endpoint:** `GET /documents`
+- Optional query parameter: `user_id`
 
 **Response:**
 ```json
@@ -363,115 +304,73 @@ Get all documents. Optionally filter by user_id.
   "success": true,
   "data": [
     {
-      "id": "507f1f77bcf86cd799439011",
+      "_id": "507f1f77bcf86cd799439011",
       "user_id": "user123",
-      "title": "Mathematics Study Guide",
-          "topic_scores": [
-      {"mathematics": 8.0}
-    ],
-      "document_content": "Document 1 content...",
-      "created_at": "2024-01-01T12:00:00Z",
-      "updated_at": "2024-01-01T12:00:00Z"
-    },
-    {
-      "id": "507f1f77bcf86cd799439012",
-      "user_id": "user456",
-      "title": "Physics Fundamentals",
+      "title": "Physics Notes",
+      "document_content": "Content of the document...",
       "topic_scores": [
-        {"physics": 7.5}
+        {"mathematics": 8.5},
+        {"science": 9.2}
       ],
-      "document_content": "Document 2 content...",
-      "created_at": "2024-01-01T13:00:00Z",
-      "updated_at": "2024-01-01T13:00:00Z"
+      "questions": [
+        "What is the capital of France?"
+      ],
+      "created_at": "2024-06-01T12:00:00Z",
+      "updated_at": "2024-06-01T12:00:00Z"
     }
   ]
 }
 ```
 
-### Update Document Scores
-**PUT** `/documents/{document_id}/scores`
+**Error Responses:**
+- `500 Internal Server Error`: Database connection issues
 
-Update topic scores for a document. If a topic doesn't exist, it will be created.
-
-**Request Body:**
-```json
-{
-  "topic_scores": [
-    {"math": 9.0},
-    {"physics": 8.5},
-    {"chemistry": 7.8}
-  ]
-}
+**Example:**
+```bash
+curl -X GET "http://localhost:8000/documents"
+curl -X GET "http://localhost:8000/documents?user_id=user123"
 ```
+
+### 3. Get a Single Document
+Retrieve a document by its ID.
+
+**Endpoint:** `GET /documents/{document_id}`
 
 **Response:**
 ```json
 {
   "success": true,
   "data": {
-    "id": "507f1f77bcf86cd799439011",
+    "_id": "507f1f77bcf86cd799439011",
     "user_id": "user123",
-    "title": "Mathematics and Physics Study Guide",
+    "title": "Physics Notes",
+    "document_content": "Content of the document...",
     "topic_scores": [
-      {"math": 9.0},
-      {"physics": 8.5},
-      {"chemistry": 7.8}
-    ],
-    "document_content": "This is the content of the document...",
-    "created_at": "2024-01-01T12:00:00Z",
-    "updated_at": "2024-01-01T14:30:00Z"
-  },
-  "message": "Document scores updated successfully"
-}
-```
-
-### Update Document Questions
-**PUT** `/documents/{document_id}/questions`
-
-Update questions for a document. New questions are added to existing ones, but only the last 10 questions are kept.
-
-**Request Body:**
-```json
-{
-  "questions": [
-    "What is the integral of 2x?",
-    "Define velocity and acceleration.",
-    "What is the Pythagorean theorem?"
-  ]
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "id": "507f1f77bcf86cd799439011",
-    "user_id": "user123",
-    "title": "Mathematics and Physics Study Guide",
-    "topic_scores": [
-      {"mathematics": 8.0},
-      {"physics": 7.5}
+      {"mathematics": 8.5},
+      {"science": 9.2}
     ],
     "questions": [
-      "What is the derivative of x²?",
-      "Explain Newton's laws of motion.",
-      "What is the integral of 2x?",
-      "Define velocity and acceleration.",
-      "What is the Pythagorean theorem?"
+      "What is the capital of France?"
     ],
-    "document_content": "This is the content of the document...",
-    "created_at": "2024-01-01T12:00:00Z",
-    "updated_at": "2024-01-01T14:30:00Z"
-  },
-  "message": "Document questions updated successfully"
+    "created_at": "2024-06-01T12:00:00Z",
+    "updated_at": "2024-06-01T12:00:00Z"
+  }
 }
 ```
 
-### Delete Document
-**DELETE** `/documents/{document_id}`
+**Error Responses:**
+- `404 Not Found`: Document not found
+- `500 Internal Server Error`: Database connection issues
 
+**Example:**
+```bash
+curl -X GET "http://localhost:8000/documents/507f1f77bcf86cd799439011"
+```
+
+### 4. Delete a Document
 Delete a document by its ID.
+
+**Endpoint:** `DELETE /documents/{document_id}`
 
 **Response:**
 ```json
@@ -481,52 +380,146 @@ Delete a document by its ID.
 }
 ```
 
-## Error Responses
+**Error Responses:**
+- `404 Not Found`: Document not found
+- `500 Internal Server Error`: Database connection issues
 
-All endpoints return consistent error responses:
+**Example:**
+```bash
+curl -X DELETE "http://localhost:8000/documents/507f1f77bcf86cd799439011"
+```
 
-**400 Bad Request:**
+### 5. Update Document Scores
+Replace all topic scores for a document.
+
+**Endpoint:** `PUT /documents/{document_id}/scores`
+
+**Request:**
 ```json
 {
-  "detail": "Error message describing the issue"
+  "topic_scores": [
+    {"mathematics": 9.0},
+    {"science": 8.7}
+  ]
 }
 ```
 
-**404 Not Found:**
+**Response:**
 ```json
 {
-  "detail": "Document 507f1f77bcf86cd799439011 not found"
+  "success": true,
+  "data": {
+    "_id": "507f1f77bcf86cd799439011",
+    "user_id": "user123",
+    "title": "Physics Notes",
+    "document_content": "Content of the document...",
+    "topic_scores": [
+      {"mathematics": 9.0},
+      {"science": 8.7}
+    ],
+    "questions": [
+      "What is the capital of France?"
+    ],
+    "created_at": "2024-06-01T12:00:00Z",
+    "updated_at": "2024-06-01T12:05:00Z"
+  },
+  "message": "Document scores updated successfully"
 }
 ```
 
-**500 Internal Server Error:**
+**Error Responses:**
+- `404 Not Found`: Document not found
+- `500 Internal Server Error`: Database connection issues
+
+**Example:**
+```bash
+curl -X PUT "http://localhost:8000/documents/507f1f77bcf86cd799439011/scores" \
+     -H "Content-Type: application/json" \
+     -d '{"topic_scores": [{"mathematics": 9.0}, {"science": 8.7}]}'
+```
+
+### 6. Update Document Questions
+Update the questions for a document (keeps only the last 10 questions).
+
+**Endpoint:** `PUT /documents/{document_id}/questions`
+
+**Request:**
 ```json
 {
-  "detail": "Internal server error: Error message"
+  "questions": [
+    "What is the capital of France?",
+    "Explain Newton's second law.",
+    "What is the speed of light?"
+  ]
 }
 ```
 
-## Notes
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "_id": "507f1f77bcf86cd799439011",
+    "user_id": "user123",
+    "title": "Physics Notes",
+    "document_content": "Content of the document...",
+    "topic_scores": [
+      {"mathematics": 9.0},
+      {"science": 8.7}
+    ],
+    "questions": [
+      "Explain Newton's second law.",
+      "What is the speed of light?"
+    ],
+    "created_at": "2024-06-01T12:00:00Z",
+    "updated_at": "2024-06-01T12:10:00Z"
+  },
+  "message": "Document questions updated successfully"
+}
+```
 
-- Document IDs are auto-generated MongoDB ObjectIds
-- Topic scores are stored as an array of objects with `topic` and `score` fields
-- Scores can be any float value
-- The `updated_at` timestamp is automatically updated when scores are modified
-- All timestamps are in UTC format
+**Error Responses:**
+- `404 Not Found`: Document not found
+- `500 Internal Server Error`: Database connection issues
+
+**Example:**
+```bash
+curl -X PUT "http://localhost:8000/documents/507f1f77bcf86cd799439011/questions" \
+     -H "Content-Type: application/json" \
+     -d '{"questions": ["Explain Newton\'s second law.", "What is the speed of light?"]}'
+```
 
 ---
 
 ## Data Models
 
-### UserScore Document Structure
+### User Document Structure
 ```json
 {
   "_id": "ObjectId (auto-generated)",
   "user_id": "string (unique)",
   "topic_scores": [
-    {"topic_name": "score_value"},
-    {"topic_name": "score_value"}
+    {"topic_name": score_value},
+    {"topic_name": score_value}
   ]
+}
+```
+
+### Document Structure
+```json
+{
+  "_id": "ObjectId (auto-generated)",
+  "user_id": "string",
+  "title": "string",
+  "document_content": "string",
+  "topic_scores": [
+    {"topic": score}
+  ],
+  "questions": [
+    "string"
+  ],
+  "created_at": "ISODate",
+  "updated_at": "ISODate"
 }
 ```
 
@@ -535,15 +528,52 @@ All endpoints return consistent error responses:
 #### CreateUserRequest
 ```json
 {
-  "user_id": "string (required)"
+  "user_id": "string (required)",
+  "topic_scores": [
+    {"topic": score}
+  ]
 }
 ```
 
-#### UpdateTopicScoreRequest
+#### UpdateUserScoresRequest
 ```json
 {
-  "topic": "string (required)",
-  "score": "float (required, 0-10)"
+  "topic_scores": [
+    {"topic": score}
+  ]
+}
+```
+
+#### CreateDocumentRequest
+```json
+{
+  "user_id": "string",
+  "title": "string",
+  "document_content": "string",
+  "topic_scores": [
+    {"topic": score}
+  ],
+  "questions": [
+    "string"
+  ]
+}
+```
+
+#### UpdateScoresRequest (for Document)
+```json
+{
+  "topic_scores": [
+    {"topic": score}
+  ]
+}
+```
+
+#### UpdateQuestionsRequest (for Document)
+```json
+{
+  "questions": [
+    "string"
+  ]
 }
 ```
 
@@ -555,7 +585,7 @@ All endpoints return consistent error responses:
 - **Host:** localhost
 - **Port:** 27017
 - **Database:** quiz_app
-- **Collection:** user_scores
+- **Collection:** users
 
 ### Data Validation
 - User IDs cannot be empty or whitespace-only
@@ -575,7 +605,7 @@ All endpoints return consistent error responses:
 ```
 
 ### HTTP Status Codes
-- `200 OK`: Successful GET/PUT requests
+- `200 OK`: Successful GET/PUT/DELETE requests
 - `201 Created`: Successful POST requests
 - `400 Bad Request`: Invalid input data or validation errors
 - `404 Not Found`: Resource not found
@@ -592,70 +622,35 @@ The API is configured to accept requests from any origin with the following sett
 
 ---
 
-## Development Setup
-
-### Prerequisites
-- Python 3.13+
-- MongoDB running on localhost:27017
-- Required Python packages (see requirements.txt)
-
-### Installation
-1. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-2. Start MongoDB service:
-   ```bash
-   mongod
-   ```
-
-3. Run the application:
-   ```bash
-   uvicorn main:app --reload
-   ```
-
-4. Access API documentation:
-   - Swagger UI: http://localhost:8000/docs
-   - ReDoc: http://localhost:8000/redoc
-
----
-
 ## Examples
 
-### Complete User Score Management Workflow
+### Complete User Management Workflow
 
 1. **Create a new user:**
    ```bash
    curl -X POST "http://localhost:8000/users" \
         -H "Content-Type: application/json" \
-        -d '{"user_id": "student001"}'
+        -d '{"user_id": "student001", "topic_scores": [{"mathematics": 8.5}]}'
    ```
 
-2. **Add topic scores:**
+2. **Update all topic scores for the user:**
    ```bash
    curl -X PUT "http://localhost:8000/users/student001/scores" \
         -H "Content-Type: application/json" \
-        -d '{"topic": "mathematics", "score": 8.5}'
-   
-   curl -X PUT "http://localhost:8000/users/student001/scores" \
-        -H "Content-Type: application/json" \
-        -d '{"topic": "science", "score": 9.2}'
+        -d '{"topic_scores": [{"mathematics": 9.0}, {"science": 8.7}]}'
    ```
 
-3. **Get all scores for the user:**
+3. **Get all users:**
    ```bash
-   curl -X GET "http://localhost:8000/users/student001/scores"
+   curl -X GET "http://localhost:8000/users"
    ```
 
-4. **Update a specific topic score:**
+4. **Get a single user:**
    ```bash
-   curl -X PUT "http://localhost:8000/users/student001/scores" \
-        -H "Content-Type: application/json" \
-        -d '{"topic": "mathematics", "score": 8.8}'
+   curl -X GET "http://localhost:8000/users/student001"
    ```
 
-5. **Get a specific topic score:**
+5. **Delete a user:**
    ```bash
-   curl -X GET "http://localhost:8000/users/student001/scores/mathematics"
+   curl -X DELETE "http://localhost:8000/users/student001"
    ```

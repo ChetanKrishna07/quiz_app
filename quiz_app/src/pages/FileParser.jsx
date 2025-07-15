@@ -10,9 +10,6 @@ export const FileParser = ({
   setTextContent,
   selectedFile,
   handleExtractTopics,
-  handleGenerateQuiz,
-  userScores,
-  setUserScores,
 }) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
