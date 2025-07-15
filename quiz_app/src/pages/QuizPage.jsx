@@ -2,7 +2,11 @@ import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { updateDocumentQuestions, updateDocumentScores } from "../utils/api";
 
-export const QuizPage = ({ questions: questionsProp, userScores, setUserScores }) => {
+export const QuizPage = ({
+  questions: questionsProp,
+  userScores,
+  setUserScores,
+}) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { documentId } = location.state || {};
@@ -16,11 +20,10 @@ export const QuizPage = ({ questions: questionsProp, userScores, setUserScores }
   if (!localQuestions || localQuestions.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">No Quiz Questions</h1>
-        <button
-          onClick={() => navigate("/dashboard")}
-          className="quiz-btn"
-        >
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">
+          No Quiz Questions
+        </h1>
+        <button onClick={() => navigate("/dashboard")} className="quiz-btn">
           Go to Dashboard
         </button>
       </div>
@@ -114,7 +117,10 @@ export const QuizPage = ({ questions: questionsProp, userScores, setUserScores }
         if (userAnswers[index] !== undefined) {
           let scoreChange = userAnswers[index] === question.answer ? 0.5 : -0.5;
           updatedScores[topic] += scoreChange;
-          updatedScores[topic] = Math.max(0, Math.min(10, updatedScores[topic]));
+          updatedScores[topic] = Math.max(
+            0,
+            Math.min(10, updatedScores[topic])
+          );
         }
       });
       setUserScores(updatedScores);
@@ -124,9 +130,11 @@ export const QuizPage = ({ questions: questionsProp, userScores, setUserScores }
       try {
         await updateDocumentQuestions(documentId, localQuestions);
         const currentScores = getCurrentTopicScores();
-        const documentTopicScores = Object.entries(currentScores).map(([topic, score]) => ({
-          [topic]: Math.max(0, Math.min(10, score)),
-        }));
+        const documentTopicScores = Object.entries(currentScores).map(
+          ([topic, score]) => ({
+            [topic]: Math.max(0, Math.min(10, score)),
+          })
+        );
         await updateDocumentScores(documentId, documentTopicScores);
       } catch (error) {
         console.error("Error updating document:", error);
@@ -140,7 +148,6 @@ export const QuizPage = ({ questions: questionsProp, userScores, setUserScores }
         score: calculateScore(),
         topicScores: calculateTopicWiseScore(),
         documentId,
-        overallScores: userScores,
       },
     });
   };

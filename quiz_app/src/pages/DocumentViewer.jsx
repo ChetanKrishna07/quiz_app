@@ -1,14 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { getDocument, updateDocumentQuestions } from "../utils/api";
+import {
+  getDocument,
+  updateDocumentQuestions,
+  deleteDocument,
+} from "../utils/api";
 import { generateQuiz } from "../utils/ai";
 import { Loading } from "../components/Loading";
+import { MdDeleteForever } from "react-icons/md";
 
 export const DocumentViewer = ({ userScores, setUserScores, activeUser }) => {
   const { documentId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   const [document, setDocument] = useState(null);
   const [loading, setLoading] = useState(true);
   const [generatingQuiz, setGeneratingQuiz] = useState(false);
@@ -26,11 +31,11 @@ export const DocumentViewer = ({ userScores, setUserScores, activeUser }) => {
       const response = await getDocument(documentId);
       console.log("DocumentViewer - Document response:", response);
       setDocument(response.data);
-      
+
       // Initialize selected topics from document's topic scores
       if (response.data.topic_scores) {
-        const topics = response.data.topic_scores.map(scoreObj => 
-          Object.keys(scoreObj)[0]
+        const topics = response.data.topic_scores.map(
+          (scoreObj) => Object.keys(scoreObj)[0]
         );
         setSelectedTopics(topics);
       }
@@ -39,7 +44,7 @@ export const DocumentViewer = ({ userScores, setUserScores, activeUser }) => {
       console.error("Error details:", {
         status: error.response?.status,
         data: error.response?.data,
-        message: error.message
+        message: error.message,
       });
     } finally {
       setLoading(false);
@@ -54,10 +59,10 @@ export const DocumentViewer = ({ userScores, setUserScores, activeUser }) => {
 
     try {
       setGeneratingQuiz(true);
-      
+
       // Get previous questions from the document
       const previousQuestions = document.questions || [];
-      
+
       // Generate new quiz questions
       const newQuestions = await generateQuiz(
         document.document_content,
@@ -71,11 +76,11 @@ export const DocumentViewer = ({ userScores, setUserScores, activeUser }) => {
       await updateDocumentQuestions(documentId, updatedQuestions);
 
       // Navigate to quiz with new questions
-      navigate("/quiz", { 
-        state: { 
+      navigate("/quiz", {
+        state: {
           documentId: documentId,
-          questions: newQuestions 
-        } 
+          questions: newQuestions,
+        },
       });
     } catch (error) {
       console.error("Error generating new quiz:", error);
@@ -86,10 +91,8 @@ export const DocumentViewer = ({ userScores, setUserScores, activeUser }) => {
   };
 
   const toggleTopic = (topic) => {
-    setSelectedTopics(prev => 
-      prev.includes(topic) 
-        ? prev.filter(t => t !== topic)
-        : [...prev, topic]
+    setSelectedTopics((prev) =>
+      prev.includes(topic) ? prev.filter((t) => t !== topic) : [...prev, topic]
     );
   };
 
@@ -100,11 +103,10 @@ export const DocumentViewer = ({ userScores, setUserScores, activeUser }) => {
   if (!document) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">Document Not Found</h1>
-        <button
-          onClick={() => navigate("/dashboard")}
-          className="quiz-btn"
-        >
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">
+          Document Not Found
+        </h1>
+        <button onClick={() => navigate("/dashboard")} className="quiz-btn">
           Back to Dashboard
         </button>
       </div>
@@ -112,7 +114,28 @@ export const DocumentViewer = ({ userScores, setUserScores, activeUser }) => {
   }
 
   return (
-    <div className="flex flex-col min-h-screen p-4 sm:p-6 lg:p-8 bg-background">
+    <div className="flex flex-col min-h-screen p-4 sm:p-6 lg:p-8 bg-background relative">
+      {/* Floating Delete Button */}
+      <button
+        className="group absolute top-6 right-6 z-20 p-2 rounded-full bg-white shadow hover:bg-red-100 focus:outline-none cursor-pointer"
+        aria-label="Delete Document"
+        title="Delete Document"
+        onClick={async (e) => {
+          e.stopPropagation();
+          const confirm = window.confirm("Are you sure you want to delete this document?");
+          if (confirm) {
+            try {
+              await deleteDocument(documentId);
+              navigate("/dashboard");
+            } catch (error) {
+              alert("Failed to delete document. Please try again.");
+            }
+          }
+        }}
+        type="button"
+      >
+        <MdDeleteForever className="text-red-500 text-2xl group-hover:text-red-600 group-hover:scale-110 transition-all duration-300" />
+      </button>
       <div className="max-w-6xl w-full mx-auto space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
@@ -124,25 +147,28 @@ export const DocumentViewer = ({ userScores, setUserScores, activeUser }) => {
               Created: {new Date(document.created_at).toLocaleDateString()}
             </p>
           </div>
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+          <div className="flex items-center gap-4">
+              {/* Delete button moved to top right, so remove from here */}
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-            Back to Dashboard
-          </button>
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
+              </svg>
+              Back to Dashboard
+            </button>
+          </div>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
@@ -173,7 +199,10 @@ export const DocumentViewer = ({ userScores, setUserScores, activeUser }) => {
                     const topic = Object.keys(scoreObj)[0];
                     const score = scoreObj[topic];
                     return (
-                      <div key={index} className="flex justify-between items-center">
+                      <div
+                        key={index}
+                        className="flex justify-between items-center"
+                      >
                         <span className="text-sm font-medium text-gray-700">
                           {topic}
                         </span>
@@ -185,7 +214,9 @@ export const DocumentViewer = ({ userScores, setUserScores, activeUser }) => {
                   })}
                 </div>
               ) : (
-                <p className="text-gray-500 italic">No topic scores available</p>
+                <p className="text-gray-500 italic">
+                  No topic scores available
+                </p>
               )}
             </div>
 
@@ -194,7 +225,7 @@ export const DocumentViewer = ({ userScores, setUserScores, activeUser }) => {
               <h3 className="text-lg font-semibold text-gray-800 mb-4">
                 Generate New Quiz
               </h3>
-              
+
               {/* Topic Selection */}
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -258,7 +289,10 @@ export const DocumentViewer = ({ userScores, setUserScores, activeUser }) => {
                 </h3>
                 <div className="space-y-2 max-h-40 overflow-y-auto">
                   {document.questions.slice(-5).map((question, index) => (
-                    <div key={index} className="text-sm text-gray-600 p-2 bg-gray-50 rounded">
+                    <div
+                      key={index}
+                      className="text-sm text-gray-600 p-2 bg-gray-50 rounded"
+                    >
                       {question.question || question}
                     </div>
                   ))}
@@ -270,4 +304,4 @@ export const DocumentViewer = ({ userScores, setUserScores, activeUser }) => {
       </div>
     </div>
   );
-}; 
+};

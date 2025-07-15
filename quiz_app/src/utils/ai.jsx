@@ -11,24 +11,24 @@ const model = "gpt-4o-mini";
 
 const extractTopics = async (textContent, currentTopics = []) => {
   const prompt = `
-    You are a topic extraction assistant. Please analyze the following text and extract 5-8 key topics that would be suitable for creating quiz questions.
-    
-    Text content:
-    ${textContent}
-    
+    You are a topic extraction assistant. Please analyze the following text and extract 3-4 key topics that would be suitable for creating quiz questions.
+    Only extract topics that are relevant to the text content.
+
+    Output format:
+    {
+        "topics": ["Topic 1", "Topic 2", "Topic 3", "Topic 4"]
+    }
+
     If the following topics are relevant, include them in the output exactly as they are without any modification along with any new topics you find:
+
     ${
       currentTopics && currentTopics.length > 0
         ? currentTopics.join(", ")
         : "None"
     }
 
-    OUTPUTFORMAT:
-    {
-        "topics": ["Topic 1", "Topic 2", "Topic 3", "Topic 4", "Topic 5"]
-    }
-    
-    Extract relevant topics that cover the main concepts, theories, facts, or important points from the text. Return exactly in the JSON format shown above. No other text or explanation.
+    Text content:
+    ${textContent}
     `;
 
   const response = await ai.chat.completions.create({
@@ -61,27 +61,27 @@ const parseTopics = async (topicsResponse) => {
 const generateQuizQuestion = async (textContent, topic, previousQuestions) => {
   const prompt = `
     You are a quiz generator. Please generate a single question based on the following topic: ${topic}.
-    The quiz should be based on the following content:
 
-    ${textContent}.
-
-    Make sure you do not repeat the previous questions.
-
-    The previous questions are: 
-    
-    ${previousQuestions}
-    
-    
     OUTPUTFORMAT:
 
     {
         "question": "What is the capital of France?",
         "options": ["Paris", "London", "Berlin", "Madrid"],
-        "answer": "Paris",
-        "topic": "${topic}"
+        "answer": "Paris"
     }
     
-    Generate exactly one question, in the output format. Make sure to include the topic field. No other text or explanation.
+    Generate exactly one question, in the output format. No other text or explanation.
+    
+    The quiz should be based only on the text content, and not on any other information.
+    Make sure you do not repeat the previous questions.
+
+    The previous questions are: 
+    
+    ${previousQuestions}
+
+    The text content is:
+
+    ${textContent}.
     `;
 
   const response = await ai.chat.completions.create({
@@ -154,7 +154,7 @@ export const generateQuiz = async (
     const topic = topicsToUse[i % topicsToUse.length]; // Cycle through topics
     const question = await generateQuizQuestion(textContent, topic, [
       ...previousQuestions,
-      ...questions.map(q => q.question) // Only pass question text, not full objects
+      ...questions.map((q) => q.question), // Only pass question text, not full objects
     ]);
     const parsedQuestion = await parseQuizQuestion(question);
     if (parsedQuestion) {
@@ -173,12 +173,13 @@ export const generateQuiz = async (
  */
 export const generateDocumentName = async (textContent) => {
   const prompt = `
-    You are a document naming assistant. Please analyze the following text and generate a concise, descriptive title (maximum 60 characters) that captures the main topic or theme of the document.
-    
+    You are a document naming assistant. Please analyze the following text and generate a concise title (maximum 60 characters) that captures the main topic or theme of the document.
+    Generate a clear, professional title that would help users identify this document. Return only the title, no quotes or additional text.
+
     Text content:
     ${textContent.substring(0, 1000)}...
     
-    Generate a clear, professional title that would help users identify this document. Return only the title, no quotes or additional text.
+    
     `;
 
   try {
@@ -190,7 +191,7 @@ export const generateDocumentName = async (textContent) => {
 
     const title = response.choices[0].message.content.trim();
     // Remove quotes if present
-    return title.replace(/^["']|["']$/g, '');
+    return title.replace(/^["']|["']$/g, "");
   } catch (error) {
     console.error("Error generating document name:", error);
     return "Untitled Document";

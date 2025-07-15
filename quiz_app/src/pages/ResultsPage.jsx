@@ -10,7 +10,6 @@ export const ResultsPage = () => {
     score = 0,
     topicScores = {},
     documentId = null,
-    overallScores = {},
   } = location.state || {};
 
   if (!questions.length) {
@@ -141,41 +140,7 @@ export const ResultsPage = () => {
           })}
         </div>
 
-        {/* Overall User Topic Scores */}
-        {overallScores && Object.keys(overallScores).length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-800 border-b-2 border-gray-200 pb-2 mb-4">
-              Overall Topic Mastery (Across All Quizzes)
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {Object.entries(overallScores).map(([topic, score]) => {
-                const colors = getTopicColor(score);
-                const percentage = (score / 10) * 100;
-                return (
-                  <div key={topic} className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-medium text-gray-800 text-sm truncate" title={topic}>
-                        {topic}
-                      </h3>
-                      <span className={`text-sm font-bold ${colors.text}`}>
-                        {score.toFixed(1)}/10
-                      </span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-3">
-                      <div
-                        className={`h-3 rounded-full transition-all duration-300 ${colors.bg}`}
-                        style={{ width: `${percentage}%` }}
-                      ></div>
-                    </div>
-                    <div className="mt-2 text-xs text-gray-600">
-                      Mastery Level: {score >= 7 ? "Expert" : score >= 5 ? "Good" : score >= 3 ? "Learning" : "Beginner"}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
+        {/* Overall User Topic Scores */}       
 
         <div className="text-center space-y-4">
           <div className="flex gap-4 justify-center">
@@ -190,7 +155,7 @@ export const ResultsPage = () => {
           </div>
           <button 
             onClick={() => navigate("/dashboard")} 
-            className="px-6 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+            className="quiz-btn"
           >
             Go to Dashboard
           </button>
