@@ -1,11 +1,18 @@
 import React from "react";
 import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { updateDocumentQuestions, updateDocumentScores } from "../utils/api";
 
 export const QuizPage = ({ questions, userScores, setUserScores }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { documentId } = location.state || {};
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState({});
   const [showResults, setShowResults] = useState(false);
   const [selectedOption, setSelectedOption] = useState("");
+
+  console.log("QuizPage render - showResults:", showResults, "currentQuestionIndex:", currentQuestionIndex, "questions length:", questions.length);
 
   const currentQuestion = questions[currentQuestionIndex];
   const isLastQuestion = currentQuestionIndex === questions.length - 1;
@@ -16,12 +23,15 @@ export const QuizPage = ({ questions, userScores, setUserScores }) => {
 
   const handleNext = () => {
     if (selectedOption) {
+      console.log("handleNext called - currentQuestionIndex:", currentQuestionIndex, "isLastQuestion:", isLastQuestion);
+      
       setUserAnswers((prev) => ({
         ...prev,
         [currentQuestionIndex]: selectedOption,
       }));
 
       if (isLastQuestion) {
+        console.log("Setting showResults to true - quiz should finish");
         setShowResults(true);
       } else {
         setCurrentQuestionIndex((prev) => prev + 1);
@@ -71,11 +81,34 @@ export const QuizPage = ({ questions, userScores, setUserScores }) => {
     }
   };
 
-  // Update user scores when quiz is completed
+  // Update user scores and document when quiz is completed
   useEffect(() => {
     const handleScoreUpdate = async () => {
+      console.log("useEffect triggered - showResults:", showResults, "userAnswers length:", Object.keys(userAnswers).length, "questions length:", questions.length);
+      
       if (showResults && Object.keys(userAnswers).length === questions.length) {
+        console.log("Quiz completed, updating scores...");
         await updateUserScores();
+        
+        // Update document with new questions and topic scores if documentId is available
+        if (documentId && questions.length > 0) {
+          try {
+            // Update document questions
+            await updateDocumentQuestions(documentId, questions);
+            console.log("Document questions updated successfully");
+            
+            // Update document topic scores based on quiz performance
+            const currentScores = getCurrentTopicScores();
+            const documentTopicScores = Object.entries(currentScores).map(([topic, score]) => ({
+              [topic]: Math.max(0, Math.min(10, score))
+            }));
+            
+            await updateDocumentScores(documentId, documentTopicScores);
+            console.log("Document topic scores updated successfully");
+          } catch (error) {
+            console.error("Error updating document:", error);
+          }
+        }
       }
     };
     
@@ -138,6 +171,7 @@ export const QuizPage = ({ questions, userScores, setUserScores }) => {
   };
 
   const restartQuiz = () => {
+    console.log("restartQuiz called - resetting quiz state");
     setCurrentQuestionIndex(0);
     setUserAnswers({});
     setShowResults(false);
@@ -295,9 +329,25 @@ export const QuizPage = ({ questions, userScores, setUserScores }) => {
             </div>
           )}
 
-          <div className="text-center">
-            <button onClick={restartQuiz} className="quiz-btn">
-              Take Quiz Again
+          <div className="text-center space-y-4">
+            <div className="flex gap-4 justify-center">
+              <button onClick={restartQuiz} className="quiz-btn">
+                Take Quiz Again
+              </button>
+              {documentId && (
+                <button 
+                  onClick={() => navigate(`/document/${documentId}`)} 
+                  className="px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-medium transition-colors"
+                >
+                  Back to Document
+                </button>
+              )}
+            </div>
+            <button 
+              onClick={() => navigate("/dashboard")} 
+              className="px-6 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+            >
+              Go to Dashboard
             </button>
           </div>
         </div>

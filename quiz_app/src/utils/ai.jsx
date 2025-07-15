@@ -154,7 +154,7 @@ export const generateQuiz = async (
     const topic = topicsToUse[i % topicsToUse.length]; // Cycle through topics
     const question = await generateQuizQuestion(textContent, topic, [
       ...previousQuestions,
-      ...questions,
+      ...questions.map(q => q.question) // Only pass question text, not full objects
     ]);
     const parsedQuestion = await parseQuizQuestion(question);
     if (parsedQuestion) {
@@ -164,4 +164,35 @@ export const generateQuiz = async (
     }
   }
   return questions;
+};
+
+/**
+ * Generate a custom document name based on the content
+ * @param {string} textContent - The document content
+ * @returns {Promise<string>} - The generated document name
+ */
+export const generateDocumentName = async (textContent) => {
+  const prompt = `
+    You are a document naming assistant. Please analyze the following text and generate a concise, descriptive title (maximum 60 characters) that captures the main topic or theme of the document.
+    
+    Text content:
+    ${textContent.substring(0, 1000)}...
+    
+    Generate a clear, professional title that would help users identify this document. Return only the title, no quotes or additional text.
+    `;
+
+  try {
+    const response = await ai.chat.completions.create({
+      model: model,
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.7,
+    });
+
+    const title = response.choices[0].message.content.trim();
+    // Remove quotes if present
+    return title.replace(/^["']|["']$/g, '');
+  } catch (error) {
+    console.error("Error generating document name:", error);
+    return "Untitled Document";
+  }
 };

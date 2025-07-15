@@ -1,30 +1,13 @@
-from pymongo import MongoClient
 from typing import List, Dict, Optional
 from pydantic import BaseModel, validator
 from bson import ObjectId
 import logging
-import os
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# MongoDB connection
-try:
-    # Use environment variable for MongoDB URI, fallback to localhost for development
-    mongodb_uri = os.getenv('MONGO_URI', 'localhost:27017')
-    if mongodb_uri.startswith('mongodb://'):
-        client = MongoClient(mongodb_uri)
-    else:
-        # Handle the case where MONGODB_URI is just the host:port
-        client = MongoClient(mongodb_uri)
-    
-    db = client.quiz_app
-    user_scores_collection = db.user_scores
-    logger.info("Connected to MongoDB successfully")
-except Exception as e:
-    logger.error(f"Failed to connect to MongoDB: {e}")
-    raise
+# Import database connection
+from db import user_scores_collection
 
 class TopicScore(BaseModel):
     topic: str
@@ -123,15 +106,18 @@ class UserScoreDB:
                 {"$set": {"topic_scores": topic_scores}}
             )
             
-            if result.modified_count == 0:
-                raise Exception("Failed to update topic score")
+            # Check if update was successful (either modified or matched)
+            if result.matched_count == 0:
+                raise Exception(f"User {user_id} not found for update")
             
             # Return updated document
             updated_doc = user_scores_collection.find_one({"user_id": user_id})
-            updated_doc['_id'] = str(updated_doc['_id'])
-            
-            logger.info(f"Updated topic score for user {user_id}, topic {topic}, score {score}")
-            return updated_doc
+            if updated_doc:
+                updated_doc['_id'] = str(updated_doc['_id'])
+                logger.info(f"Updated topic score for user {user_id}, topic {topic}, score {score}")
+                return updated_doc
+            else:
+                raise Exception("Failed to retrieve updated document")
             
         except Exception as e:
             logger.error(f"Error updating topic score for {user_id}: {e}")

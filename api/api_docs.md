@@ -273,6 +273,249 @@ curl -X DELETE "http://localhost:8000/users/user123/scores"
 
 ---
 
+## Document Endpoints
+
+### Create Document
+**POST** `/documents`
+
+Create a new document with content.
+
+**Request Body:**
+```json
+{
+  "user_id": "user123",
+  "title": "Mathematics and Physics Study Guide",
+  "document_content": "This is the content of the document...",
+  "topic_scores": [
+    {"mathematics": 8.0},
+    {"physics": 7.5}
+  ],
+  "questions": [
+    "What is the derivative of x²?",
+    "Explain Newton's laws of motion."
+  ]
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "507f1f77bcf86cd799439011",
+    "user_id": "user123",
+    "title": "Mathematics and Physics Study Guide",
+    "topic_scores": [
+      {"mathematics": 8.0},
+      {"physics": 7.5}
+    ],
+    "questions": [
+      "What is the derivative of x²?",
+      "Explain Newton's laws of motion."
+    ],
+    "document_content": "This is the content of the document...",
+    "created_at": "2024-01-01T12:00:00Z",
+    "updated_at": "2024-01-01T12:00:00Z"
+  },
+  "message": "Document created successfully"
+}
+```
+
+### Get Document by ID
+**GET** `/documents/{document_id}`
+
+Retrieve a specific document by its ID.
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "507f1f77bcf86cd799439011",
+    "user_id": "user123",
+    "title": "Mathematics and Physics Study Guide",
+    "topic_scores": [
+      {"math": 8.5},
+      {"science": 7.2}
+    ],
+    "document_content": "This is the content of the document...",
+    "created_at": "2024-01-01T12:00:00Z",
+    "updated_at": "2024-01-01T12:00:00Z"
+  }
+}
+```
+
+### Get All Documents
+**GET** `/documents`
+
+Get all documents. Optionally filter by user_id.
+
+**Query Parameters:**
+- `user_id` (optional): Filter documents by user ID
+
+**Examples:**
+- `GET /documents` - Get all documents
+- `GET /documents?user_id=user123` - Get documents for specific user
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "507f1f77bcf86cd799439011",
+      "user_id": "user123",
+      "title": "Mathematics Study Guide",
+          "topic_scores": [
+      {"mathematics": 8.0}
+    ],
+      "document_content": "Document 1 content...",
+      "created_at": "2024-01-01T12:00:00Z",
+      "updated_at": "2024-01-01T12:00:00Z"
+    },
+    {
+      "id": "507f1f77bcf86cd799439012",
+      "user_id": "user456",
+      "title": "Physics Fundamentals",
+      "topic_scores": [
+        {"physics": 7.5}
+      ],
+      "document_content": "Document 2 content...",
+      "created_at": "2024-01-01T13:00:00Z",
+      "updated_at": "2024-01-01T13:00:00Z"
+    }
+  ]
+}
+```
+
+### Update Document Scores
+**PUT** `/documents/{document_id}/scores`
+
+Update topic scores for a document. If a topic doesn't exist, it will be created.
+
+**Request Body:**
+```json
+{
+  "topic_scores": [
+    {"math": 9.0},
+    {"physics": 8.5},
+    {"chemistry": 7.8}
+  ]
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "507f1f77bcf86cd799439011",
+    "user_id": "user123",
+    "title": "Mathematics and Physics Study Guide",
+    "topic_scores": [
+      {"math": 9.0},
+      {"physics": 8.5},
+      {"chemistry": 7.8}
+    ],
+    "document_content": "This is the content of the document...",
+    "created_at": "2024-01-01T12:00:00Z",
+    "updated_at": "2024-01-01T14:30:00Z"
+  },
+  "message": "Document scores updated successfully"
+}
+```
+
+### Update Document Questions
+**PUT** `/documents/{document_id}/questions`
+
+Update questions for a document. New questions are added to existing ones, but only the last 10 questions are kept.
+
+**Request Body:**
+```json
+{
+  "questions": [
+    "What is the integral of 2x?",
+    "Define velocity and acceleration.",
+    "What is the Pythagorean theorem?"
+  ]
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "507f1f77bcf86cd799439011",
+    "user_id": "user123",
+    "title": "Mathematics and Physics Study Guide",
+    "topic_scores": [
+      {"mathematics": 8.0},
+      {"physics": 7.5}
+    ],
+    "questions": [
+      "What is the derivative of x²?",
+      "Explain Newton's laws of motion.",
+      "What is the integral of 2x?",
+      "Define velocity and acceleration.",
+      "What is the Pythagorean theorem?"
+    ],
+    "document_content": "This is the content of the document...",
+    "created_at": "2024-01-01T12:00:00Z",
+    "updated_at": "2024-01-01T14:30:00Z"
+  },
+  "message": "Document questions updated successfully"
+}
+```
+
+### Delete Document
+**DELETE** `/documents/{document_id}`
+
+Delete a document by its ID.
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Document 507f1f77bcf86cd799439011 has been deleted"
+}
+```
+
+## Error Responses
+
+All endpoints return consistent error responses:
+
+**400 Bad Request:**
+```json
+{
+  "detail": "Error message describing the issue"
+}
+```
+
+**404 Not Found:**
+```json
+{
+  "detail": "Document 507f1f77bcf86cd799439011 not found"
+}
+```
+
+**500 Internal Server Error:**
+```json
+{
+  "detail": "Internal server error: Error message"
+}
+```
+
+## Notes
+
+- Document IDs are auto-generated MongoDB ObjectIds
+- Topic scores are stored as an array of objects with `topic` and `score` fields
+- Scores can be any float value
+- The `updated_at` timestamp is automatically updated when scores are modified
+- All timestamps are in UTC format
+
+---
+
 ## Data Models
 
 ### UserScore Document Structure

@@ -1,6 +1,7 @@
 import axios from "axios";
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:4000";
+// const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:4000";
+const API_BASE_URL = "http://localhost:8000";
 
 // API utility functions for user score management
 
@@ -72,13 +73,34 @@ export const getUserScores = async (userId) => {
  */
 export const updateTopicScore = async (userId, topic, score) => {
   try {
-    const response = await axios.put(`${API_BASE_URL}/users/${userId}/scores`, {
+    // Validate inputs
+    if (!userId || !topic || score === undefined || score === null) {
+      throw new Error("Missing required parameters: userId, topic, or score");
+    }
+    
+    // Ensure score is a number and within valid range
+    const numericScore = parseFloat(score);
+    if (isNaN(numericScore) || numericScore < 0 || numericScore > 10) {
+      throw new Error(`Invalid score: ${score}. Score must be between 0 and 10.`);
+    }
+    
+    const requestData = {
       topic: topic,
-      score: score,
-    });
+      score: numericScore,
+    };
+    console.log("updateTopicScore - Request data:", requestData);
+    console.log("updateTopicScore - URL:", `${API_BASE_URL}/users/${userId}/scores`);
+    
+    const response = await axios.put(`${API_BASE_URL}/users/${userId}/scores`, requestData);
+    console.log("updateTopicScore - Response:", response.data);
     return response.data;
   } catch (error) {
     console.error("Error updating topic score:", error);
+    console.error("Error details:", {
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.message
+    });
     throw error;
   }
 };
@@ -129,12 +151,126 @@ export const convertTopicScoresToObject = (topicScoresArray) => {
  */
 export const updateMultipleTopicScores = async (userId, topicScores) => {
   try {
-    const updatePromises = Object.entries(topicScores).map(([topic, score]) =>
-      updateTopicScore(userId, topic, score)
-    );
+    console.log("updateMultipleTopicScores - userId:", userId);
+    console.log("updateMultipleTopicScores - topicScores:", topicScores);
+    
+    const updatePromises = Object.entries(topicScores).map(([topic, score]) => {
+      console.log(`updateMultipleTopicScores - Processing topic: ${topic}, score: ${score}`);
+      return updateTopicScore(userId, topic, score);
+    });
     await Promise.all(updatePromises);
   } catch (error) {
     console.error("Error updating multiple topic scores:", error);
+    throw error;
+  }
+};
+
+// Document API functions
+
+/**
+ * Create a new document
+ * @param {Object} documentData - Document data including user_id, document_content, topic_scores, questions
+ * @returns {Promise<Object>} - Response data
+ */
+export const createDocument = async (documentData) => {
+  try {
+    console.log("createDocument - Request data:", documentData);
+    console.log("createDocument - URL:", `${API_BASE_URL}/documents`);
+    
+    const response = await axios.post(`${API_BASE_URL}/documents`, documentData);
+    console.log("createDocument - Response:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error creating document:", error);
+    console.error("Error details:", {
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.message
+    });
+    throw error;
+  }
+};
+
+/**
+ * Get all documents for a user
+ * @param {string} userId - Optional user ID to filter documents
+ * @returns {Promise<Object>} - Documents data
+ */
+export const getDocuments = async (userId = null) => {
+  try {
+    const url = userId 
+      ? `${API_BASE_URL}/documents?user_id=${userId}`
+      : `${API_BASE_URL}/documents`;
+    const response = await axios.get(url);
+    return response.data;
+  } catch (error) {
+    console.error("Error getting documents:", error);
+    throw error;
+  }
+};
+
+/**
+ * Get a specific document by ID
+ * @param {string} documentId - The document ID
+ * @returns {Promise<Object>} - Document data
+ */
+export const getDocument = async (documentId) => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/documents/${documentId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error getting document:", error);
+    throw error;
+  }
+};
+
+/**
+ * Update document scores
+ * @param {string} documentId - The document ID
+ * @param {Array} topicScores - Array of topic score objects
+ * @returns {Promise<Object>} - Response data
+ */
+export const updateDocumentScores = async (documentId, topicScores) => {
+  try {
+    const response = await axios.put(`${API_BASE_URL}/documents/${documentId}/scores`, {
+      topic_scores: topicScores
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error updating document scores:", error);
+    throw error;
+  }
+};
+
+/**
+ * Update document questions
+ * @param {string} documentId - The document ID
+ * @param {Array} questions - Array of questions
+ * @returns {Promise<Object>} - Response data
+ */
+export const updateDocumentQuestions = async (documentId, questions) => {
+  try {
+    const response = await axios.put(`${API_BASE_URL}/documents/${documentId}/questions`, {
+      questions: questions
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error updating document questions:", error);
+    throw error;
+  }
+};
+
+/**
+ * Delete a document
+ * @param {string} documentId - The document ID
+ * @returns {Promise<Object>} - Response data
+ */
+export const deleteDocument = async (documentId) => {
+  try {
+    const response = await axios.delete(`${API_BASE_URL}/documents/${documentId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting document:", error);
     throw error;
   }
 };

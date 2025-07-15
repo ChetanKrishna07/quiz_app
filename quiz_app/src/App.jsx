@@ -3,6 +3,7 @@ import axios from "axios";
 import { FileParser } from "./pages/FileParser";
 import { QuizPage } from "./pages/QuizPage";
 import { TopicSelectionPage } from "./pages/TopicSelectionPage";
+import { DocumentViewer } from "./pages/DocumentViewer";
 import { Login } from "./pages/Login";
 import { SignUp } from "./pages/SignUp";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
@@ -32,7 +33,8 @@ function App() {
   const [currentUser, setCurrentUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
 
-  const url = process.env.REACT_APP_API_URL || "http://localhost:4000";
+  // const url = process.env.REACT_APP_API_URL || "http://localhost:4000";
+  const url = "http://localhost:8000";
 
   // Monitor authentication state
   useEffect(() => {
@@ -263,6 +265,7 @@ function App() {
                   handleGenerateQuiz={handleGenerateQuiz}
                   userScores={userScores}
                   setUserScores={updateUserScoresInDB}
+                  activeUser={activeUser}
                 />
               </ProtectedRoute>
             }
@@ -284,7 +287,19 @@ function App() {
             path="/dashboard"
             element={
               <ProtectedRoute>
-                <Dashboard topicScores={userScores} />
+                <Dashboard topicScores={userScores} activeUser={activeUser} />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/document/:documentId"
+            element={
+              <ProtectedRoute>
+                <DocumentViewer 
+                  userScores={userScores} 
+                  setUserScores={updateUserScoresInDB}
+                  activeUser={activeUser}
+                />
               </ProtectedRoute>
             }
           />

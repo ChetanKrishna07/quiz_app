@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { createDocument } from "../utils/api";
+import { generateDocumentName } from "../utils/ai";
 
 export const TopicSelectionPage = ({
   handleGenerateQuiz,
   userScores,
   setUserScores,
+  activeUser,
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -14,13 +17,35 @@ export const TopicSelectionPage = ({
   const [newTopic, setNewTopic] = useState("");
   const [numQuestions, setNumQuestions] = useState(10);
   const [loading, setLoading] = useState(false);
+  const [documentName, setDocumentName] = useState("");
+  const [generatingName, setGeneratingName] = useState(false);
 
-  // Initialize selected topics when component mounts
+  // Initialize selected topics and generate document name when component mounts
   useEffect(() => {
     if (extractedTopics && extractedTopics.length > 0) {
       setSelectedTopics([...extractedTopics]);
     }
-  }, [extractedTopics]);
+    
+    // Generate document name if we have content
+    if (textContent && !documentName) {
+      generateDocumentNameFromContent();
+    }
+  }, [extractedTopics, textContent]);
+
+  const generateDocumentNameFromContent = async () => {
+    if (!textContent) return;
+    
+    try {
+      setGeneratingName(true);
+      const name = await generateDocumentName(textContent);
+      setDocumentName(name);
+    } catch (error) {
+      console.error("Error generating document name:", error);
+      setDocumentName("Untitled Document");
+    } finally {
+      setGeneratingName(false);
+    }
+  };
 
   console.log("TopicSelectionPage.jsx Rendered with:");
   console.log("  - Extracted topics: ", extractedTopics);
@@ -55,21 +80,43 @@ export const TopicSelectionPage = ({
         setLoading(true);
         console.log("TopicSelectionPage.jsx Processing topics for quiz generation");
         
-        // Initialize scores for new topics
+        // Initialize scores for new topics and update user scores
         const updatedScores = { ...userScores };
         for (let topic of selectedTopics) {
           if (!updatedScores[topic]) {
             updatedScores[topic] = 0;
           }
         }
-        setUserScores(updatedScores);
+        
+        // Update user scores in database
+        await setUserScores(updatedScores);
+        
+        // Save document first
+        const documentData = {
+          user_id: activeUser,
+          document_content: textContent,
+          topic_scores: selectedTopics.map(topic => ({ [topic]: updatedScores[topic] || 0 })),
+          questions: [],
+          title: documentName || "Untitled Document"
+        };
+        
+        console.log("TopicSelectionPage.jsx Saving document:", documentData);
+        console.log("TopicSelectionPage.jsx Document topic_scores:", documentData.topic_scores);
+        const savedDocument = await createDocument(documentData);
+        console.log("TopicSelectionPage.jsx Document saved:", savedDocument);
         
         // Generate quiz and navigate
         const questions = await handleGenerateQuiz(selectedTopics, numQuestions);
         setLoading(false);
         
         if (questions && questions.length > 0) {
-          navigate("/quiz");
+          // Navigate to quiz with document ID for later updates
+          navigate("/quiz", { 
+            state: { 
+              documentId: savedDocument.data.id,
+              questions: questions 
+            } 
+          });
         }
       } catch (error) {
         console.error("Error generating quiz:", error);
@@ -112,6 +159,30 @@ export const TopicSelectionPage = ({
             </svg>
             Back to Content
           </button>
+        </div>
+
+        {/* Document Name Section */}
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+            Document Name
+          </h3>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={documentName}
+              onChange={(e) => setDocumentName(e.target.value)}
+              placeholder="Document name..."
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              disabled={generatingName}
+            />
+            <button
+              onClick={generateDocumentNameFromContent}
+              disabled={generatingName || !textContent}
+              className="quiz-btn"
+            >
+              {generatingName ? "Generating..." : "Generate Name"}
+            </button>
+          </div>
         </div>
 
         {/* Topics Section */}
