@@ -2,53 +2,72 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FileUpload } from "../components/FileUpload";
 import { Loading } from "../components/Loading";
+import axios from "axios";
 
-
-export const FileParser = ({
-  handleFileSelect,
-  textContent,
-  setTextContent,
-  selectedFile,
-  handleExtractTopics,
-}) => {
+export const FileParser = ({ handleExtractTopics }) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [textContent, setTextContent] = useState("");
+  const [selectedFile, setSelectedFile] = useState(null);
 
-  const onGenerateQuiz = async () => {
-    console.log("FileParser.jsx onGenerateQuiz triggered");
+  const url = "http://localhost:8000";
+
+  const parseFile = async (file) => {
+    setLoading(true);
     try {
-      setLoading(true);
-      // Extract topics from the text content
-      const topics = await handleExtractTopics();
-      console.log("FileParser.jsx Topics extracted: ", topics);
-      
-      // Navigate to topic selection page with extracted topics
-      console.log("FileParser.jsx Navigating to topic selection with topics:", topics);
-      navigate("/topic-selection", { 
-        state: { 
-          extractedTopics: topics || [],
-          textContent: textContent,
-          selectedFile: selectedFile
-        } 
+      const formData = new FormData();
+      formData.append("file", file);
+      const response = await axios.post(`${url}/parse_file`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
       setLoading(false);
+      if (response.data.success) {
+        return response.data.data.text_content;
+      } else {
+        return "Error parsing file";
+      }
     } catch (error) {
-      console.error("Error extracting topics:", error);
       setLoading(false);
-      // Navigate to topic selection with empty topics if extraction fails
-      navigate("/topic-selection", { 
-        state: { 
-          extractedTopics: [],
-          textContent: textContent,
-          selectedFile: selectedFile
-        } 
-      });
+      return "Error parsing file";
     }
   };
 
-  // These functions are no longer needed as we're using navigation
+  const handleFileSelect = async (file) => {
+    setSelectedFile(file);
+    if (file) {
+      const parsedContent = await parseFile(file);
+      setTextContent(parsedContent);
+    } else {
+      setTextContent("");
+    }
+  };
 
-
+  const onGenerateQuiz = async () => {
+    try {
+      setLoading(true);
+      // Extract topics from the text content
+      const topics = await handleExtractTopics(textContent);
+      navigate("/topic-selection", {
+        state: {
+          extractedTopics: topics || [],
+          textContent: textContent,
+          selectedFile: selectedFile,
+        },
+      });
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+      navigate("/topic-selection", {
+        state: {
+          extractedTopics: [],
+          textContent: textContent,
+          selectedFile: selectedFile,
+        },
+      });
+    }
+  };
 
   return (
     <>
@@ -85,12 +104,7 @@ export const FileParser = ({
             <button
               className="quiz-btn"
               disabled={!selectedFile && !textContent.trim()}
-              onClick={() => {
-                console.log("FileParser.jsx Button clicked!");
-                console.log("FileParser.jsx selectedFile:", selectedFile);
-                console.log("FileParser.jsx textContent length:", textContent.length);
-                onGenerateQuiz();
-              }}
+              onClick={onGenerateQuiz}
             >
               Generate Quiz
             </button>
