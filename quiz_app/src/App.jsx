@@ -7,7 +7,7 @@ import { Login } from "./pages/Login";
 import { SignUp } from "./pages/SignUp";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import "./App.css";
-import { generateQuiz, getTopicsFromText } from "./utils/ai";
+import { generateQuiz } from "./utils/ai";
 import { Loading } from "./components/Loading";
 import { Navbar } from "./components/Navbar";
 import { Dashboard } from "./pages/Dashboard";
@@ -114,23 +114,6 @@ function App() {
     }
   };
 
-  const handleExtractTopics = async () => {
-    try {
-      setLoading(true);
-      const topics = await getTopicsFromText(
-        textContent,
-        Object.keys(userScores)
-      );
-      console.log("App.jsx Topics: ", topics);
-      setLoading(false);
-      return topics;
-    } catch (error) {
-      console.error("Error extracting topics:", error);
-      setLoading(false);
-      return [];
-    }
-  };
-
   const handleGenerateQuiz = async (selectedTopics, numQuestions) => {
     console.log("App.jsx Selected topics: ", selectedTopics);
     console.log("App.jsx Num questions: ", numQuestions);
@@ -206,9 +189,7 @@ function App() {
             path="/"
             element={
               <ProtectedRoute>
-                <FileParser
-                  handleExtractTopics={handleExtractTopics}
-                />
+                <FileParser userScores={userScores} />
               </ProtectedRoute>
             }
           />
@@ -250,8 +231,8 @@ function App() {
             path="/document/:documentId"
             element={
               <ProtectedRoute>
-                <DocumentViewer 
-                  userScores={userScores} 
+                <DocumentViewer
+                  userScores={userScores}
                   setUserScores={updateUserScoresInDB}
                   activeUser={activeUser}
                 />

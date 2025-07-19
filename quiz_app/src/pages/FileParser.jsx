@@ -3,12 +3,30 @@ import { useNavigate } from "react-router-dom";
 import { FileUpload } from "../components/FileUpload";
 import { Loading } from "../components/Loading";
 import { parseFile } from "../utils/api";
+import { getTopicsFromText } from "../utils/ai";
 
-export const FileParser = ({ handleExtractTopics }) => {
+export const FileParser = ({ userScores }) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [textContent, setTextContent] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
+
+  const handleExtractTopics = async () => {
+    try {
+      setLoading(true);
+      const topics = await getTopicsFromText(
+        textContent,
+        Object.keys(userScores)
+      );
+      console.log("App.jsx Topics: ", topics);
+      setLoading(false);
+      return topics;
+    } catch (error) {
+      console.error("Error extracting topics:", error);
+      setLoading(false);
+      return [];
+    }
+  };
 
   const handleFileSelect = async (file) => {
     setSelectedFile(file);

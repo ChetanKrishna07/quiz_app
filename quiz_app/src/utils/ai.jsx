@@ -11,7 +11,7 @@ const model = "gpt-4o-mini";
 
 const extractTopics = async (textContent, currentTopics = []) => {
   const prompt = `
-    You are a topic extraction assistant. Please analyze the following text and extract 3-4 key topics that would be suitable for creating quiz questions.
+    You are a topic extraction assistant. Please analyze the following text and extract 1-4 key topics that would be suitable for creating quiz questions.
     Only extract topics that are relevant to the text content.
 
     Output format:
@@ -19,7 +19,10 @@ const extractTopics = async (textContent, currentTopics = []) => {
         "topics": ["Topic 1", "Topic 2", "Topic 3", "Topic 4"]
     }
 
-    If the following topics are relevant, include them in the output exactly as they are without any modification along with any new topics you find:
+    If the following topics are relevant, include them in the output exactly as they are without any modification along with any new topics you find. 
+    Only include topics that are relevant to the text content, do not include topics that are not relevant to the text content.
+
+    The current topics are:
 
     ${
       currentTopics && currentTopics.length > 0
@@ -30,6 +33,8 @@ const extractTopics = async (textContent, currentTopics = []) => {
     Text content:
     ${textContent}
     `;
+
+  console.log("ai.jsx: prompt: ", prompt);
 
   const response = await ai.chat.completions.create({
     model: model,
@@ -111,6 +116,7 @@ const parseQuizQuestion = async (question) => {
 };
 
 export const getTopicsFromText = async (textContent, currentTopics = []) => {
+  console.log("ai.jsx: getTopicsFromText: ", textContent);
   const topicsResponse = await extractTopics(textContent, currentTopics);
   const topics = await parseTopics(topicsResponse);
   console.log("ai.jsx Topics: ", topics);
