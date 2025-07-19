@@ -1,46 +1,33 @@
-import OpenAI from "openai";
+import axios from "axios";
 
-const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
+const API_BASE_URL = "http://localhost:4000" || process.env.REACT_APP_API_URL 
+// const API_BASE_URL = "http://localhost:4000"
 
-const ai = new OpenAI({
-  apiKey: OPENAI_API_KEY,
-  dangerouslyAllowBrowser: true,
-});
-
-const model = "gpt-4o-mini";
 
 const extractTopics = async (textContent, currentTopics = []) => {
-  const prompt = `
-    You are a topic extraction assistant. Please analyze the following text and extract 1-4 key topics that would be suitable for creating quiz questions.
-    Only extract topics that are relevant to the text content.
-
-    Output format:
-    {
-        "topics": ["Topic 1", "Topic 2", "Topic 3", "Topic 4"]
+  try {
+    const response = await axios.post(
+      `${API_BASE_URL}/ai/extract-topics`,
+      {
+        text_content: textContent,
+        current_topics: currentTopics,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    
+    if (response.data.success) {
+      return JSON.stringify({ topics: response.data.data.topics });
+    } else {
+      throw new Error("Failed to extract topics");
     }
-
-    If the following topics are relevant, include them in the output exactly as they are without any modification along with any new topics you find. 
-    Only include topics that are relevant to the text content, do not include topics that are not relevant to the text content.
-
-    The current topics are:
-
-    ${
-      currentTopics && currentTopics.length > 0
-        ? currentTopics.join(", ")
-        : "None"
-    }
-
-    Text content:
-    ${textContent}
-    `;
-
-  const response = await ai.chat.completions.create({
-    model: model,
-    messages: [{ role: "user", content: prompt }],
-    temperature: 0.7,
-  });
-
-  return response.choices[0].message.content;
+  } catch (error) {
+    console.error("Error extracting topics:", error);
+    return JSON.stringify({ topics: [] });
+  }
 };
 
 const parseTopics = async (topicsResponse) => {
@@ -59,38 +46,30 @@ const parseTopics = async (topicsResponse) => {
 };
 
 const generateQuizQuestion = async (textContent, topic, previousQuestions) => {
-  const prompt = `
-    You are a quiz generator. Please generate a single question based on the following topic: ${topic}.
-
-    OUTPUTFORMAT:
-
-    {
-        "question": "What is the capital of France?",
-        "options": ["Paris", "London", "Berlin", "Madrid"],
-        "answer": "Paris"
+  try {
+    const response = await axios.post(
+      `${API_BASE_URL}/ai/generate-quiz`,
+      {
+        text_content: textContent,
+        topic: topic,
+        previous_questions: previousQuestions,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    
+    if (response.data.success) {
+      return JSON.stringify(response.data.data);
+    } else {
+      throw new Error("Failed to generate quiz question");
     }
-    
-    Generate exactly one question, in the output format. No other text or explanation.
-    
-    The quiz should be based only on the text content, and not on any other information.
-    Make sure you do not repeat the previous questions.
-
-    The previous questions are: 
-    
-    ${previousQuestions}
-
-    The text content is:
-
-    ${textContent}.
-    `;
-
-  const response = await ai.chat.completions.create({
-    model: model,
-    messages: [{ role: "user", content: prompt }],
-    temperature: 0.7,
-  });
-
-  return response.choices[0].message.content;
+  } catch (error) {
+    console.error("Error generating quiz question:", error);
+    return null;
+  }
 };
 
 const parseQuizQuestion = async (question) => {
@@ -114,30 +93,6 @@ export const getTopicsFromText = async (textContent, currentTopics = []) => {
   const topics = await parseTopics(topicsResponse);
   return topics;
 };
-
-// export const generateQuiz = async (
-//   textContent,
-//   topics,
-//   previousQuestions,
-//   numQuestions
-// ) => {
-//   // Replace this with mock questions for testing
-//   const mockQuestions = [];
-//   const topicsToUse = topics.length > 0 ? topics : ["general"];
-
-//   for (let i = 0; i < numQuestions; i++) {
-//     mockQuestions.push({
-//       question: `Mock question ${i + 1} on topic ${
-//         topicsToUse[i % topicsToUse.length]
-//       }`,
-//       options: ["Option A", "Option B", "Option C", "Option D"],
-//       answer: "Option A",
-//       topic: topicsToUse[i % topicsToUse.length],
-//     });
-//   }
-
-//   return mockQuestions;
-// };
 
 export const generateQuiz = async (
   textContent,
@@ -170,26 +125,24 @@ export const generateQuiz = async (
  * @returns {Promise<string>} - The generated document name
  */
 export const generateDocumentName = async (textContent) => {
-  const prompt = `
-    You are a document naming assistant. Please analyze the following text and generate a concise title (maximum 60 characters) that captures the main topic or theme of the document.
-    Generate a clear, professional title that would help users identify this document. Return only the title, no quotes or additional text.
-
-    Text content:
-    ${textContent.substring(0, 1000)}...
-    
-    
-    `;
-
   try {
-    const response = await ai.chat.completions.create({
-      model: model,
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.7,
-    });
+    const response = await axios.post(
+      `${API_BASE_URL}/ai/generate-document-name`,
+      {
+        text_content: textContent,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
-    const title = response.choices[0].message.content.trim();
-    // Remove quotes if present
-    return title.replace(/^["']|["']$/g, "");
+    if (response.data.success) {
+      return response.data.data.title;
+    } else {
+      throw new Error("Failed to generate document name");
+    }
   } catch (error) {
     console.error("Error generating document name:", error);
     return "Untitled Document";

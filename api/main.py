@@ -12,8 +12,11 @@ import uuid
 from datetime import datetime
 from bson import ObjectId
 from db import documents_collection
+from dotenv import load_dotenv
+import os
+import openai
 
-
+load_dotenv()
 
 app = FastAPI()
 
@@ -25,6 +28,24 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
+
+# Initialize OpenAI client
+openai_client = openai.OpenAI(
+    api_key=os.getenv("OPENAI_API_KEY")
+)
+
+# AI Models
+class ExtractTopicsRequest(BaseModel):
+    text_content: str
+    current_topics: Optional[List[str]] = []
+
+class GenerateQuizRequest(BaseModel):
+    text_content: str
+    topic: str
+    previous_questions: Optional[List[str]] = []
+
+class GenerateDocumentNameRequest(BaseModel):
+    text_content: str
 
 
 @app.get("/")
@@ -284,6 +305,133 @@ async def delete_document(document_id: str):
             return {"success": True, "message": f"Document {document_id} has been deleted"}
         else:
             raise HTTPException(status_code=404, detail=f"Document {document_id} not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+# AI Endpoints
+
+@app.post("/ai/extract-topics")
+async def extract_topics(request: ExtractTopicsRequest):
+    """Extract topics from text content"""
+    try:
+        prompt = f"""
+        You are a topic extraction assistant. Please analyze the following text and extract 1-4 key topics that would be suitable for creating quiz questions.
+        Only extract topics that are relevant to the text content.
+
+        Output format:
+        {{
+            "topics": ["Topic 1", "Topic 2", "Topic 3", "Topic 4"]
+        }}
+
+        If the following topics are relevant, include them in the output exactly as they are without any modification along with any new topics you find. 
+        Only include topics that are relevant to the text content, do not include topics that are not relevant to the text content.
+
+        The current topics are:
+
+        {', '.join(request.current_topics) if request.current_topics else 'None'}
+
+        Text content:
+        {request.text_content}
+        """
+
+        response = openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7,
+        )
+
+        content = response.choices[0].message.content
+        # Parse the response
+        try:
+            import json
+            # Clean up the response
+            content = content.strip()
+            content = content.replace("```json\n", "").replace("\n```", "").replace("```", "")
+            parsed = json.loads(content)
+            topics = parsed.get("topics", [])
+            return {"success": True, "data": {"topics": topics}}
+        except json.JSONDecodeError:
+            raise HTTPException(status_code=500, detail="Failed to parse AI response")
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+@app.post("/ai/generate-quiz")
+async def generate_quiz(request: GenerateQuizRequest):
+    """Generate a single quiz question"""
+    try:
+        prompt = f"""
+        You are a quiz generator. Please generate a single question based on the following topic: {request.topic}.
+
+        OUTPUTFORMAT:
+
+        {{
+            "question": "What is the capital of France?",
+            "options": ["Paris", "London", "Berlin", "Madrid"],
+            "answer": "Paris"
+        }}
+        
+        Generate exactly one question, in the output format. No other text or explanation.
+        
+        The quiz should be based only on the text content, and not on any other information.
+        Make sure you do not repeat the previous questions.
+
+        The previous questions are: 
+        
+        {', '.join(request.previous_questions) if request.previous_questions else 'None'}
+
+        The text content is:
+
+        {request.text_content}.
+        """
+
+        response = openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7,
+        )
+
+        content = response.choices[0].message.content
+        # Parse the response
+        try:
+            import json
+            # Clean up the response
+            content = content.strip()
+            content = content.replace("```json\n", "").replace("\n```", "").replace("```", "")
+            parsed = json.loads(content)
+            # Add the topic to the response
+            parsed["topic"] = request.topic
+            return {"success": True, "data": parsed}
+        except json.JSONDecodeError:
+            raise HTTPException(status_code=500, detail="Failed to parse AI response")
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+@app.post("/ai/generate-document-name")
+async def generate_document_name(request: GenerateDocumentNameRequest):
+    """Generate a document name based on content"""
+    try:
+        prompt = f"""
+        You are a document naming assistant. Please analyze the following text and generate a concise title (maximum 60 characters) that captures the main topic or theme of the document.
+        Generate a clear, professional title that would help users identify this document. Return only the title, no quotes or additional text.
+
+        Text content:
+        {request.text_content[:1000]}...
+        """
+
+        response = openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7,
+        )
+
+        title = response.choices[0].message.content.strip()
+        # Remove quotes if present
+        title = title.replace('"', '').replace("'", "")
+        
+        return {"success": True, "data": {"title": title}}
+            
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
