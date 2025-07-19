@@ -149,7 +149,7 @@ export const ResultsPage = () => {
               {documentId && (
                 <button 
                   onClick={() => navigate(`/document/${documentId}`)} 
-                  className="px-4 sm:px-6 py-2 sm:py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-medium transition-colors text-sm sm:text-base"
+                  className="px-4 sm:px-6 py-2 sm:py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-medium transition-colors text-sm sm:text-base cursor-pointer"
                 >
                   Back to Document
                 </button>
@@ -157,7 +157,7 @@ export const ResultsPage = () => {
             </div>
             <button 
               onClick={() => navigate("/dashboard")} 
-              className="quiz-btn text-sm sm:text-base py-2 sm:py-3"
+              className="px-4 sm:px-6 py-2 sm:py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-colors text-sm sm:text-base cursor-pointer"
             >
               Go to Dashboard
             </button>
