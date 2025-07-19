@@ -73,7 +73,11 @@ export const DocumentViewer = ({ userScores, setUserScores, activeUser }) => {
 
       // Update document with new questions
       const updatedQuestions = [...previousQuestions, ...newQuestions];
-      await updateDocumentQuestions(documentId, updatedQuestions);
+      const questionsList = [];
+      updatedQuestions.forEach((question) => {
+        questionsList.push(question.question);
+      });
+      await updateDocumentQuestions(documentId, questionsList);
 
       // Navigate to quiz with new questions
       navigate("/quiz", {

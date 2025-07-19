@@ -5,10 +5,9 @@ import { Loading } from "../components/Loading";
 import { parseFile } from "../utils/api";
 import { getTopicsFromText } from "../utils/ai";
 
-export const FileParser = ({ userScores }) => {
+export const FileParser = ({ userScores, textContent, setTextContent }) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [textContent, setTextContent] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
 
   const handleExtractTopics = async () => {

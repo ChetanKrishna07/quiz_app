@@ -138,9 +138,7 @@ export const ResultsPage = () => {
               </div>
             );
           })}
-        </div>
-
-        {/* Overall User Topic Scores */}       
+        </div>     
 
         <div className="text-center space-y-4">
           <div className="flex gap-4 justify-center">

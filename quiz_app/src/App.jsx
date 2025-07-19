@@ -189,7 +189,11 @@ function App() {
             path="/"
             element={
               <ProtectedRoute>
-                <FileParser userScores={userScores} />
+                <FileParser
+                  userScores={userScores}
+                  textContent={textContent}
+                  setTextContent={setTextContent}
+                />
               </ProtectedRoute>
             }
           />

@@ -153,6 +153,7 @@ export const generateQuiz = async (
   previousQuestions,
   numQuestions
 ) => {
+  console.log("ai.jsx: generateQuiz: ", textContent);
   const questions = [];
   const topicsToUse = topics.length > 0 ? topics : ["general"];
 

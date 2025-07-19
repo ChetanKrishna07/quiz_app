@@ -128,7 +128,11 @@ export const QuizPage = ({
     // Update document if available
     if (documentId && localQuestions.length > 0) {
       try {
-        await updateDocumentQuestions(documentId, localQuestions);
+        const questionsList = [];
+        localQuestions.forEach((question) => {
+          questionsList.push(question.question);
+        });
+        await updateDocumentQuestions(documentId, questionsList);
         const currentScores = getCurrentTopicScores();
         const documentTopicScores = Object.entries(currentScores).map(
           ([topic, score]) => ({

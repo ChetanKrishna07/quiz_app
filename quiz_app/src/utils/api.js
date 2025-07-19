@@ -208,9 +208,11 @@ export const updateDocumentScores = async (documentId, topicScores) => {
  */
 export const updateDocumentQuestions = async (documentId, questions) => {
   try {
+    console.log("Updating document questions:", questions);
+    const data = { questions: questions };
     const response = await axios.put(
       `${API_BASE_URL}/documents/${documentId}/questions`,
-      { questions },
+      data,
       { headers: { "Content-Type": "application/json" } }
     );
     return response.data;
