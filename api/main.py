@@ -30,9 +30,13 @@ app.add_middleware(
 )
 
 # Initialize OpenAI client
-openai_client = openai.OpenAI(
-    api_key=os.getenv("OPENAI_API_KEY")
-)
+try:
+    openai_client = openai.OpenAI(
+        api_key=os.getenv("OPENAI_API_KEY")
+    )
+except Exception as e:
+    print(f"Warning: Failed to initialize OpenAI client: {e}")
+    openai_client = None
 
 # AI Models
 class ExtractTopicsRequest(BaseModel):
@@ -314,6 +318,9 @@ async def delete_document(document_id: str):
 async def extract_topics(request: ExtractTopicsRequest):
     """Extract topics from text content"""
     try:
+        if openai_client is None:
+            raise HTTPException(status_code=500, detail="OpenAI client not initialized")
+            
         prompt = f"""
         You are a topic extraction assistant. Please analyze the following text and extract 1-4 key topics that would be suitable for creating quiz questions.
         Only extract topics that are relevant to the text content.
@@ -345,6 +352,8 @@ async def extract_topics(request: ExtractTopicsRequest):
         try:
             import json
             # Clean up the response
+            if content is None:
+                raise HTTPException(status_code=500, detail="Empty response from OpenAI")
             content = content.strip()
             content = content.replace("```json\n", "").replace("\n```", "").replace("```", "")
             parsed = json.loads(content)
@@ -360,6 +369,9 @@ async def extract_topics(request: ExtractTopicsRequest):
 async def generate_quiz(request: GenerateQuizRequest):
     """Generate a single quiz question"""
     try:
+        if openai_client is None:
+            raise HTTPException(status_code=500, detail="OpenAI client not initialized")
+            
         prompt = f"""
         You are a quiz generator. Please generate a single question based on the following topic: {request.topic}.
 
@@ -396,6 +408,8 @@ async def generate_quiz(request: GenerateQuizRequest):
         try:
             import json
             # Clean up the response
+            if content is None:
+                raise HTTPException(status_code=500, detail="Empty response from OpenAI")
             content = content.strip()
             content = content.replace("```json\n", "").replace("\n```", "").replace("```", "")
             parsed = json.loads(content)
@@ -412,6 +426,9 @@ async def generate_quiz(request: GenerateQuizRequest):
 async def generate_document_name(request: GenerateDocumentNameRequest):
     """Generate a document name based on content"""
     try:
+        if openai_client is None:
+            raise HTTPException(status_code=500, detail="OpenAI client not initialized")
+            
         prompt = f"""
         You are a document naming assistant. Please analyze the following text and generate a concise title (maximum 60 characters) that captures the main topic or theme of the document.
         Generate a clear, professional title that would help users identify this document. Return only the title, no quotes or additional text.
@@ -426,7 +443,10 @@ async def generate_document_name(request: GenerateDocumentNameRequest):
             temperature=0.7,
         )
 
-        title = response.choices[0].message.content.strip()
+        title = response.choices[0].message.content
+        if title is None:
+            raise HTTPException(status_code=500, detail="Empty response from OpenAI")
+        title = title.strip()
         # Remove quotes if present
         title = title.replace('"', '').replace("'", "")
         
