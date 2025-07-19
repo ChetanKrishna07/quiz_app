@@ -134,12 +134,14 @@ export const TopicSelectionPage = ({
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4 sm:p-6 lg:p-8 bg-background">
-      <div className="max-w-4xl w-full space-y-6 lg:space-y-8">
+    <div className="min-h-screen bg-background px-4 py-6 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6 lg:space-y-8">
         {/* Header */}
         <div className="text-center">
-          <h1 className="mb-4">Customize Your Quiz</h1>
-          <p className="text-gray-600 text-base sm:text-lg max-w-2xl mx-auto">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">
+            Customize Your Quiz
+          </h1>
+          <p className="text-gray-600 text-sm sm:text-base lg:text-lg max-w-2xl mx-auto">
             Select the topics you want to include in your quiz
           </p>
         </div>
@@ -148,10 +150,10 @@ export const TopicSelectionPage = ({
         <div className="text-left">
           <button
             onClick={() => navigate("/")}
-            className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
+            className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors text-sm sm:text-base"
           >
             <svg
-              className="w-5 h-5"
+              className="w-4 h-4 sm:w-5 sm:h-5"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -163,28 +165,29 @@ export const TopicSelectionPage = ({
                 d="M15 19l-7-7 7-7"
               />
             </svg>
-            Back to Content
+            <span className="hidden sm:inline">Back to Content</span>
+            <span className="sm:hidden">Back</span>
           </button>
         </div>
 
         {/* Document Name Section */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+        <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">
             Document Name
           </h3>
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
             <input
               type="text"
               value={documentName}
               onChange={(e) => setDocumentName(e.target.value)}
               placeholder="Document name..."
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
               disabled={generatingName}
             />
             <button
               onClick={generateDocumentNameFromContent}
               disabled={generatingName || !textContent}
-              className="quiz-btn"
+              className="quiz-btn text-sm sm:text-base py-2 sm:py-3 whitespace-nowrap"
             >
               {generatingName ? "Generating..." : "Generate Name"}
             </button>
@@ -192,25 +195,25 @@ export const TopicSelectionPage = ({
         </div>
 
         {/* Topics Section */}
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+        <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">
             Selected Topics ({selectedTopics.length})
           </h3>
 
           {selectedTopics.length > 0 ? (
-            <div className="flex flex-wrap gap-2 mb-6">
+            <div className="flex flex-wrap gap-2 mb-4 sm:mb-6">
               {selectedTopics.map((topic, index) => (
                 <div
                   key={index}
-                  className="bg-blue-100 text-blue-800 px-3 py-2 rounded-lg flex items-center gap-2 group hover:bg-blue-200 transition-colors"
+                  className="bg-blue-100 text-blue-800 px-2 sm:px-3 py-1 sm:py-2 rounded-lg flex items-center gap-1 sm:gap-2 group hover:bg-blue-200 transition-colors"
                 >
-                  <span className="text-sm font-medium">{topic}</span>
+                  <span className="text-xs sm:text-sm font-medium break-words">{topic}</span>
                   <button
                     onClick={() => removeTopic(index)}
-                    className="text-blue-600 hover:text-red-600 transition-colors"
+                    className="text-blue-600 hover:text-red-600 transition-colors flex-shrink-0"
                   >
                     <svg
-                      className="w-4 h-4"
+                      className="w-3 h-3 sm:w-4 sm:h-4"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -227,39 +230,39 @@ export const TopicSelectionPage = ({
               ))}
             </div>
           ) : (
-            <p className="text-gray-500 mb-6 italic">
+            <p className="text-gray-500 mb-4 sm:mb-6 italic text-sm sm:text-base">
               No topics selected. Add some topics below to create your quiz.
             </p>
           )}
 
           {/* Add New Topic */}
-          <div className="flex gap-2 mb-6">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mb-4 sm:mb-6">
             <input
               type="text"
               value={newTopic}
               onChange={(e) => setNewTopic(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Add a new topic..."
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
             />
             <button
               onClick={addTopic}
               disabled={!newTopic.trim()}
-              className="quiz-btn"
+              className="quiz-btn text-sm sm:text-base py-2 sm:py-3 whitespace-nowrap"
             >
               Add
             </button>
           </div>
 
           {/* Number of Questions */}
-          <div className="mb-6">
-            <label className="block text-lg font-semibold text-gray-800 mb-3">
+          <div className="mb-4 sm:mb-6">
+            <label className="block text-base sm:text-lg font-semibold text-gray-800 mb-2 sm:mb-3">
               Number of Questions
             </label>
             <select
               value={numQuestions}
               onChange={(e) => setNumQuestions(Number(e.target.value))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
             >
               <option value={5}>5 Questions</option>
               <option value={10}>10 Questions</option>
@@ -270,17 +273,17 @@ export const TopicSelectionPage = ({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-3 justify-end">
+          <div className="flex flex-col sm:flex-row gap-3 justify-end">
             <button
               onClick={() => navigate("/")}
-              className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+              className="px-4 sm:px-6 py-2 sm:py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer text-sm sm:text-base"
             >
               Cancel
             </button>
             <button
               onClick={onGenerateQuiz}
               disabled={selectedTopics.length === 0 || loading}
-              className="quiz-btn"
+              className="quiz-btn text-sm sm:text-base py-2 sm:py-3"
             >
               {loading
                 ? "Generating Quiz..."
