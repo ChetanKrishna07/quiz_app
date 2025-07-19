@@ -2,14 +2,12 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import {
   getDocument,
-  updateDocumentQuestions,
   deleteDocument,
 } from "../utils/api";
-import { generateQuiz } from "../utils/ai";
 import { Loading } from "../components/Loading";
 import { MdDeleteForever } from "react-icons/md";
 
-export const DocumentViewer = ({ userScores, setUserScores, activeUser }) => {
+export const DocumentViewer = ({ userScores, setUserScores, activeUser, handleGenerateQuiz }) => {
   const { documentId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
@@ -63,29 +61,24 @@ export const DocumentViewer = ({ userScores, setUserScores, activeUser }) => {
       // Get previous questions from the document
       const previousQuestions = document.questions || [];
 
-      // Generate new quiz questions
-      const newQuestions = await generateQuiz(
+      // Generate quiz using unified function
+      const newQuestions = await handleGenerateQuiz(
         document.document_content,
         selectedTopics,
-        previousQuestions,
-        numQuestions
+        numQuestions,
+        documentId,
+        previousQuestions
       );
 
-      // Update document with new questions
-      const updatedQuestions = [...previousQuestions, ...newQuestions];
-      const questionsList = [];
-      updatedQuestions.forEach((question) => {
-        questionsList.push(question.question);
-      });
-      await updateDocumentQuestions(documentId, questionsList);
-
       // Navigate to quiz with new questions
-      navigate("/quiz", {
-        state: {
-          documentId: documentId,
-          questions: newQuestions,
-        },
-      });
+      if (newQuestions && newQuestions.length > 0) {
+        navigate("/quiz", {
+          state: {
+            documentId: documentId,
+            questions: newQuestions,
+          },
+        });
+      }
     } catch (error) {
       console.error("Error generating new quiz:", error);
       alert("Error generating quiz. Please try again.");

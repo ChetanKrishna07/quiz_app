@@ -18,6 +18,7 @@ import {
   getUserScores,
   convertTopicScoresToObject,
   updateMultipleTopicScores,
+  updateDocumentQuestions,
 } from "./utils/api";
 import { ResultsPage } from "./pages/ResultsPage";
 
@@ -114,17 +115,46 @@ function App() {
     }
   };
 
-  const handleGenerateQuiz = async (selectedTopics, numQuestions) => {
-    console.log("App.jsx Selected topics: ", selectedTopics);
-    console.log("App.jsx Num questions: ", numQuestions);
+  const handleGenerateQuiz = async (textContent, selectedTopics, numQuestions, documentId, previousQuestions = []) => {
+    console.log("App.jsx handleGenerateQuiz called with:");
+    console.log("  - textContent length:", textContent?.length);
+    console.log("  - selectedTopics:", selectedTopics);
+    console.log("  - numQuestions:", numQuestions);
+    console.log("  - documentId:", documentId);
+    console.log("  - previousQuestions count:", previousQuestions.length);
+    
+    // Validate required parameters
+    if (!documentId) {
+      throw new Error("documentId is required for handleGenerateQuiz");
+    }
+    
+    if (!textContent) {
+      throw new Error("textContent is required for handleGenerateQuiz");
+    }
+    
+    if (!selectedTopics || selectedTopics.length === 0) {
+      throw new Error("selectedTopics is required and must not be empty");
+    }
+    
     try {
       setLoading(true);
+      
+      // Generate questions using AI
       const questions = await generateQuiz(
         textContent,
         selectedTopics,
-        [],
+        previousQuestions,
         numQuestions
       );
+      
+      // Add questions to database
+      if (questions.length > 0) {
+        console.log("App.jsx Adding questions to database for document:", documentId);
+        const questionsList = questions.map(q => q.question);
+        await updateDocumentQuestions(documentId, questionsList);
+        console.log("App.jsx Questions added to database successfully");
+      }
+      
       setQuestions(questions);
       setLoading(false);
       return questions;
@@ -239,6 +269,7 @@ function App() {
                   userScores={userScores}
                   setUserScores={updateUserScoresInDB}
                   activeUser={activeUser}
+                  handleGenerateQuiz={handleGenerateQuiz}
                 />
               </ProtectedRoute>
             }

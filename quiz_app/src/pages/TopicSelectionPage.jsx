@@ -11,8 +11,12 @@ export const TopicSelectionPage = ({
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { extractedTopics = [], textContent, selectedFile } = location.state || {};
-  
+  const {
+    extractedTopics = [],
+    textContent,
+    selectedFile,
+  } = location.state || {};
+
   const [selectedTopics, setSelectedTopics] = useState([]);
   const [newTopic, setNewTopic] = useState("");
   const [numQuestions, setNumQuestions] = useState(10);
@@ -25,7 +29,7 @@ export const TopicSelectionPage = ({
     if (extractedTopics && extractedTopics.length > 0) {
       setSelectedTopics([...extractedTopics]);
     }
-    
+
     // Generate document name if we have content
     if (textContent && !documentName) {
       generateDocumentNameFromContent();
@@ -34,7 +38,7 @@ export const TopicSelectionPage = ({
 
   const generateDocumentNameFromContent = async () => {
     if (!textContent) return;
-    
+
     try {
       setGeneratingName(true);
       const name = await generateDocumentName(textContent);
@@ -71,15 +75,17 @@ export const TopicSelectionPage = ({
   };
 
   const onGenerateQuiz = async () => {
-    console.log("TopicSelectionPage.jsx handleGenerateQuiz called");
+    console.log("TopicSelectionPage.jsx onGenerateQuiz called");
     console.log("  - selectedTopics:", selectedTopics);
     console.log("  - selectedTopics.length:", selectedTopics.length);
-    
+
     if (selectedTopics.length > 0) {
       try {
         setLoading(true);
-        console.log("TopicSelectionPage.jsx Processing topics for quiz generation");
-        
+        console.log(
+          "TopicSelectionPage.jsx Processing topics for quiz generation"
+        );
+
         // Initialize scores for new topics and update user scores
         const updatedScores = { ...userScores };
         for (let topic of selectedTopics) {
@@ -87,43 +93,71 @@ export const TopicSelectionPage = ({
             updatedScores[topic] = 0;
           }
         }
-        
+
         // Update user scores in database
         await setUserScores(updatedScores);
-        
+
         // Save document first
         const documentData = {
           user_id: activeUser,
           document_content: textContent,
-          topic_scores: selectedTopics.map(topic => ({ [topic]: updatedScores[topic] || 0 })),
+          topic_scores: selectedTopics.map((topic) => ({
+            [topic]: updatedScores[topic] || 0,
+          })),
           questions: [],
-          title: documentName || "Untitled Document"
+          title: documentName || "Untitled Document",
         };
-        
+
         console.log("TopicSelectionPage.jsx Saving document:", documentData);
-        console.log("TopicSelectionPage.jsx Document topic_scores:", documentData.topic_scores);
+        console.log(
+          "TopicSelectionPage.jsx Document topic_scores:",
+          documentData.topic_scores
+        );
+
         const savedDocument = await createDocument(documentData);
         console.log("TopicSelectionPage.jsx Document saved:", savedDocument);
-        
-        // Generate quiz and navigate
-        const questions = await handleGenerateQuiz(selectedTopics, numQuestions);
+        console.log(
+          "TopicSelectionPage.jsx savedDocument.data:",
+          savedDocument.data
+        );
+        console.log(
+          "TopicSelectionPage.jsx savedDocument.data.id:",
+          savedDocument.data?.id
+        );
+
+        // Check if document was created successfully
+        if (!savedDocument.data?._id) {
+          throw new Error(
+            "Failed to create document - no document ID returned"
+          );
+        }
+        // Generate quiz using unified function with new document ID
+        const questions = await handleGenerateQuiz(
+          textContent,
+          selectedTopics,
+          numQuestions,
+          savedDocument.data._id,
+          [] // No previous questions for new documents
+        );
         setLoading(false);
-        
+
         if (questions && questions.length > 0) {
           // Navigate to quiz with document ID for later updates
-          navigate("/quiz", { 
-            state: { 
+          navigate("/quiz", {
+            state: {
               documentId: savedDocument.data.id,
-              questions: questions 
-            } 
+              questions: questions,
+            },
           });
         }
       } catch (error) {
         console.error("Error generating quiz:", error);
         setLoading(false);
-      }
+      } 
     } else {
-      console.log("TopicSelectionPage.jsx No topics selected, not generating quiz");
+      console.log(
+        "TopicSelectionPage.jsx No topics selected, not generating quiz"
+      );
     }
   };
 
@@ -190,7 +224,7 @@ export const TopicSelectionPage = ({
           <h3 className="text-lg font-semibold text-gray-800 mb-4">
             Selected Topics ({selectedTopics.length})
           </h3>
-          
+
           {selectedTopics.length > 0 ? (
             <div className="flex flex-wrap gap-2 mb-6">
               {selectedTopics.map((topic, index) => (
@@ -271,16 +305,18 @@ export const TopicSelectionPage = ({
             >
               Cancel
             </button>
-                          <button
-                onClick={onGenerateQuiz}
-                disabled={selectedTopics.length === 0 || loading}
-                className="quiz-btn"
-              >
-                {loading ? "Generating Quiz..." : `Generate Quiz (${selectedTopics.length} topics, ${numQuestions} questions)`}
-              </button>
+            <button
+              onClick={onGenerateQuiz}
+              disabled={selectedTopics.length === 0 || loading}
+              className="quiz-btn"
+            >
+              {loading
+                ? "Generating Quiz..."
+                : `Generate Quiz (${selectedTopics.length} topics, ${numQuestions} questions)`}
+            </button>
           </div>
         </div>
       </div>
     </div>
   );
-}; 
+};

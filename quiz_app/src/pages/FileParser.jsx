@@ -9,6 +9,7 @@ export const FileParser = ({ userScores, textContent, setTextContent }) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [localTextContent, setLocalTextContent] = useState(textContent);
 
   const handleExtractTopics = async () => {
     try {
@@ -32,9 +33,9 @@ export const FileParser = ({ userScores, textContent, setTextContent }) => {
     setLoading(true);
     if (file) {
       const parsedContent = await parseFile(file);
-      setTextContent(parsedContent);
+      setLocalTextContent(parsedContent);
     } else {
-      setTextContent("");
+      setLocalTextContent("");
     }
     setLoading(false);
   };
@@ -42,12 +43,13 @@ export const FileParser = ({ userScores, textContent, setTextContent }) => {
   const onGenerateQuiz = async () => {
     try {
       setLoading(true);
+      setTextContent(localTextContent);
       // Extract topics from the text content
-      const topics = await handleExtractTopics(textContent);
+      const topics = await handleExtractTopics(localTextContent);
       navigate("/topic-selection", {
         state: {
           extractedTopics: topics || [],
-          textContent: textContent,
+          textContent: localTextContent,
           selectedFile: selectedFile,
         },
       });
@@ -89,8 +91,8 @@ export const FileParser = ({ userScores, textContent, setTextContent }) => {
               <textarea
                 className="w-full h-64 p-4 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 placeholder="Paste your content here..."
-                value={textContent}
-                onChange={(e) => setTextContent(e.target.value)}
+                value={localTextContent}
+                onChange={(e) => setLocalTextContent(e.target.value)}
               />
             </div>
           </div>
@@ -98,7 +100,7 @@ export const FileParser = ({ userScores, textContent, setTextContent }) => {
           <div className="text-center">
             <button
               className="quiz-btn"
-              disabled={!selectedFile && !textContent.trim()}
+              disabled={!selectedFile && !localTextContent.trim()}
               onClick={onGenerateQuiz}
             >
               Generate Quiz
