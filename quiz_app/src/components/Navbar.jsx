@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 export const Navbar = ({ activeUser, setActiveUser, currentUser, onLogout }) => {
   const [showDropdown, setShowDropdown] = useState(false);
@@ -21,10 +22,10 @@ export const Navbar = ({ activeUser, setActiveUser, currentUser, onLogout }) => 
         </div>
         <div className="flex items-center md:gap-8 sm:gap-4">
           <li className="text-gray-700 hover:text-indigo-600 cursor-pointer transition-colors">
-            <a href="/dashboard">Dashboard</a>
+            <Link to="/dashboard">Dashboard</Link>
           </li>
           <li className="text-gray-700 hover:text-indigo-600 cursor-pointer transition-colors">
-            <a href="/">New Quiz</a>
+            <Link to="/">New Quiz</Link>
           </li>
         </div>
         <div className="flex items-center md:gap-4 sm:gap-2 md:mr-10 sm:mr-4 relative">
