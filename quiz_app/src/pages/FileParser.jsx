@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FileUpload } from "../components/FileUpload";
 import { Loading } from "../components/Loading";
-import axios from "axios";
+import { parseFile } from "../utils/api";
 
 export const FileParser = ({ handleExtractTopics }) => {
   const navigate = useNavigate();
@@ -10,38 +10,16 @@ export const FileParser = ({ handleExtractTopics }) => {
   const [textContent, setTextContent] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
 
-  const url = "http://localhost:8000";
-
-  const parseFile = async (file) => {
-    setLoading(true);
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const response = await axios.post(`${url}/parse_file`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      setLoading(false);
-      if (response.data.success) {
-        return response.data.data.text_content;
-      } else {
-        return "Error parsing file";
-      }
-    } catch (error) {
-      setLoading(false);
-      return "Error parsing file";
-    }
-  };
-
   const handleFileSelect = async (file) => {
     setSelectedFile(file);
+    setLoading(true);
     if (file) {
       const parsedContent = await parseFile(file);
       setTextContent(parsedContent);
     } else {
       setTextContent("");
     }
+    setLoading(false);
   };
 
   const onGenerateQuiz = async () => {

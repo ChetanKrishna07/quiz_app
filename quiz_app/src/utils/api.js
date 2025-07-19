@@ -5,6 +5,34 @@ const API_BASE_URL = "http://localhost:8000";
 // API utility functions for user and document management
 
 /**
+ * Parse a file and return the text content
+ * @param {File} file - The file to parse
+ * @returns {Promise<string>} - The text content of the file
+ */
+export const parseFile = async (file) => {
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+    console.log("Parsing file:", file);
+    console.log("Form data:", formData.get("file"));
+
+    const response = await axios.post(`${API_BASE_URL}/parse_file`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    if (response.data.success) {
+      return response.data.data.text_content;
+    } else {
+      return "Error parsing file";
+    }
+  } catch (error) {
+    console.log(error);
+    return "Error parsing file";
+  }
+};
+
+/**
  * Create a new user with optional topic scores
  * @param {string} userId - The unique identifier for the user
  * @param {Array} topicScores - Optional array of topic score objects
@@ -28,7 +56,8 @@ export const createUser = async (userId, topicScores = []) => {
   } catch (error) {
     if (error.response?.status === 400) {
       // User already exists
-      const errorMessage = error.response?.data?.message || error.response?.data?.detail;
+      const errorMessage =
+        error.response?.data?.message || error.response?.data?.detail;
       if (errorMessage && errorMessage.includes("already exists")) {
         return { success: true, message: "User already exists" };
       }
@@ -82,7 +111,9 @@ export const convertTopicScoresToObject = (topicScoresArray) => {
 export const updateMultipleTopicScores = async (userId, topicScores) => {
   try {
     // Convert topicScores object to array of {topic: score} objects
-    const topicScoresArray = Object.entries(topicScores).map(([topic, score]) => ({ [topic]: score }));
+    const topicScoresArray = Object.entries(topicScores).map(
+      ([topic, score]) => ({ [topic]: score })
+    );
     const response = await axios.put(
       `${API_BASE_URL}/users/${userId}/scores`,
       { topic_scores: topicScoresArray },
@@ -103,9 +134,13 @@ export const updateMultipleTopicScores = async (userId, topicScores) => {
  */
 export const createDocument = async (documentData) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/documents`, documentData, {
-      headers: { "Content-Type": "application/json" },
-    });
+    const response = await axios.post(
+      `${API_BASE_URL}/documents`,
+      documentData,
+      {
+        headers: { "Content-Type": "application/json" },
+      }
+    );
     return response.data;
   } catch (error) {
     throw error;
@@ -191,7 +226,9 @@ export const updateDocumentQuestions = async (documentId, questions) => {
  */
 export const deleteDocument = async (documentId) => {
   try {
-    const response = await axios.delete(`${API_BASE_URL}/documents/${documentId}`);
+    const response = await axios.delete(
+      `${API_BASE_URL}/documents/${documentId}`
+    );
     return response.data;
   } catch (error) {
     throw error;

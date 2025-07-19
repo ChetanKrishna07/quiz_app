@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
 import { FileParser } from "./pages/FileParser";
 import { QuizPage } from "./pages/QuizPage";
 import { TopicSelectionPage } from "./pages/TopicSelectionPage";
@@ -24,7 +23,6 @@ import { ResultsPage } from "./pages/ResultsPage";
 
 function App() {
   const [loading, setLoading] = useState(false);
-  const [selectedFile, setSelectedFile] = useState(null);
   const [textContent, setTextContent] = useState("");
   const [questions, setQuestions] = useState([]);
   const [userScores, setUserScores] = useState({});
@@ -116,18 +114,6 @@ function App() {
     }
   };
 
-  const handleFileSelect = async (file) => {
-    setSelectedFile(file);
-    console.log("Selected file:", file);
-    if (file) {
-      let parsed_content = await parseFile({ file: file });
-      console.log("Parsed content:", parsed_content);
-      setTextContent(parsed_content);
-    } else {
-      setTextContent("");
-    }
-  };
-
   const handleExtractTopics = async () => {
     try {
       setLoading(true);
@@ -163,30 +149,6 @@ function App() {
       console.error("Error generating quiz:", error);
       setLoading(false);
       return [];
-    }
-  };
-
-  const parseFile = async (file) => {
-    setLoading(true);
-    try {
-      const formData = new FormData();
-      formData.append("file", file.file);
-
-      const response = await axios.post(`${url}/parse_file`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      setLoading(false);
-      if (response.data.success) {
-        return response.data.data.text_content;
-      } else {
-        return "Error parsing file";
-      }
-    } catch (error) {
-      console.log(error);
-      setLoading(false);
-      return "Error parsing file";
     }
   };
 
@@ -245,14 +207,7 @@ function App() {
             element={
               <ProtectedRoute>
                 <FileParser
-                  handleFileSelect={handleFileSelect}
-                  textContent={textContent}
-                  setTextContent={setTextContent}
-                  selectedFile={selectedFile}
                   handleExtractTopics={handleExtractTopics}
-                  handleGenerateQuiz={handleGenerateQuiz}
-                  userScores={userScores}
-                  setUserScores={updateUserScoresInDB}
                 />
               </ProtectedRoute>
             }
