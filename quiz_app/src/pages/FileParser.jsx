@@ -15,7 +15,7 @@ export const FileParser = ({ userScores, textContent, setTextContent }) => {
     try {
       setLoading(true);
       const topics = await getTopicsFromText(
-        textContent,
+        localTextContent,
         Object.keys(userScores)
       );
       console.log("App.jsx Topics: ", topics);
@@ -45,6 +45,8 @@ export const FileParser = ({ userScores, textContent, setTextContent }) => {
       setLoading(true);
       setTextContent(localTextContent);
       // Extract topics from the text content
+      console.log("FileParser.jsx onGenerateQuiz called");
+      console.log("FileParser.jsx localTextContent: ", localTextContent);
       const topics = await handleExtractTopics(localTextContent);
       navigate("/topic-selection", {
         state: {

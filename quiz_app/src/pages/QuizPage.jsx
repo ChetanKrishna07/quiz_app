@@ -39,14 +39,17 @@ export const QuizPage = ({
 
   const handleNext = () => {
     if (selectedOption) {
-      setUserAnswers((prev) => ({
-        ...prev,
+      // Save the current answer immediately
+      const updatedAnswers = {
+        ...userAnswers,
         [currentQuestionIndex]: selectedOption,
-      }));
+      };
+      setUserAnswers(updatedAnswers);
 
       if (isLastQuestion) {
-        // Calculate scores and update backend before navigating
-        handleFinishQuiz();
+        // For the last question, we need to ensure the answer is saved before finishing
+        // Use the updated answers directly instead of relying on state
+        handleFinishQuiz(updatedAnswers);
       } else {
         setCurrentQuestionIndex((prev) => prev + 1);
         setSelectedOption("");
@@ -62,21 +65,21 @@ export const QuizPage = ({
   };
 
   // Calculate scores for results page
-  const calculateScore = () => {
+  const calculateScore = (answers = userAnswers) => {
     let score = 0;
     localQuestions.forEach((question, index) => {
-      if (userAnswers[index] === question.answer) {
+      if (answers[index] === question.answer) {
         score++;
       }
     });
     return score;
   };
 
-  const calculateTopicWiseScore = () => {
+  const calculateTopicWiseScore = (answers = userAnswers) => {
     const topicScores = {};
     localQuestions.forEach((question, index) => {
       const topic = question.topic || "Unknown Topic";
-      const isCorrect = userAnswers[index] === question.answer;
+      const isCorrect = answers[index] === question.answer;
       if (!topicScores[topic]) {
         topicScores[topic] = { correct: 0, total: 0 };
       }
@@ -88,15 +91,15 @@ export const QuizPage = ({
     return topicScores;
   };
 
-  const getCurrentTopicScores = () => {
+  const getCurrentTopicScores = (answers = userAnswers) => {
     const currentScores = {};
     localQuestions.forEach((question, index) => {
       const topic = question.topic || "Unknown Topic";
       if (!currentScores[topic]) {
         currentScores[topic] = 0;
       }
-      if (userAnswers[index] !== undefined) {
-        const isCorrect = userAnswers[index] === question.answer;
+      if (answers[index] !== undefined) {
+        const isCorrect = answers[index] === question.answer;
         currentScores[topic] += isCorrect ? 0.5 : -0.5;
         currentScores[topic] = Math.max(0, Math.min(10, currentScores[topic]));
       }
@@ -105,7 +108,10 @@ export const QuizPage = ({
   };
 
   // When quiz is finished, update scores and navigate to results
-  const handleFinishQuiz = async () => {
+  const handleFinishQuiz = async (finalAnswers = null) => {
+    // Use the provided answers or fall back to state
+    const answersToUse = finalAnswers || userAnswers;
+    
     // Update user scores
     if (userScores && setUserScores) {
       const updatedScores = { ...userScores };
@@ -114,8 +120,8 @@ export const QuizPage = ({
         if (!updatedScores[topic]) {
           updatedScores[topic] = 0;
         }
-        if (userAnswers[index] !== undefined) {
-          let scoreChange = userAnswers[index] === question.answer ? 0.5 : -0.5;
+        if (answersToUse[index] !== undefined) {
+          let scoreChange = answersToUse[index] === question.answer ? 0.5 : -0.5;
           updatedScores[topic] += scoreChange;
           updatedScores[topic] = Math.max(
             0,
@@ -133,7 +139,7 @@ export const QuizPage = ({
           questionsList.push(question.question);
         });
         await updateDocumentQuestions(documentId, questionsList);
-        const currentScores = getCurrentTopicScores();
+        const currentScores = getCurrentTopicScores(answersToUse);
         const documentTopicScores = Object.entries(currentScores).map(
           ([topic, score]) => ({
             [topic]: Math.max(0, Math.min(10, score)),
@@ -147,10 +153,10 @@ export const QuizPage = ({
     // Navigate to results page with all necessary data
     navigate("/results", {
       state: {
-        userAnswers,
+        userAnswers: answersToUse,
         questions: localQuestions,
-        score: calculateScore(),
-        topicScores: calculateTopicWiseScore(),
+        score: calculateScore(answersToUse),
+        topicScores: calculateTopicWiseScore(answersToUse),
         documentId,
       },
     });

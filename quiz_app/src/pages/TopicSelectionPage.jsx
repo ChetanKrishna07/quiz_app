@@ -145,7 +145,7 @@ export const TopicSelectionPage = ({
           // Navigate to quiz with document ID for later updates
           navigate("/quiz", {
             state: {
-              documentId: savedDocument.data.id,
+              documentId: savedDocument.data._id,
               questions: questions,
             },
           });
