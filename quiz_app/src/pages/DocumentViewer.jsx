@@ -98,7 +98,7 @@ export const DocumentViewer = ({ userScores, setUserScores, activeUser, handleGe
   if (!document) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 text-center">
           Document Not Found
         </h1>
         <button onClick={() => navigate("/dashboard")} className="quiz-btn">
@@ -109,47 +109,49 @@ export const DocumentViewer = ({ userScores, setUserScores, activeUser, handleGe
   }
 
   return (
-    <div className="flex flex-col min-h-screen p-4 sm:p-6 lg:p-8 bg-background relative">
-      {/* Floating Delete Button */}
-      <button
-        className="group absolute top-6 right-6 z-20 p-2 rounded-full bg-white shadow hover:bg-red-100 focus:outline-none cursor-pointer"
-        aria-label="Delete Document"
-        title="Delete Document"
-        onClick={async (e) => {
-          e.stopPropagation();
-          const confirm = window.confirm("Are you sure you want to delete this document?");
-          if (confirm) {
-            try {
-              await deleteDocument(documentId);
-              navigate("/dashboard");
-            } catch (error) {
-              alert("Failed to delete document. Please try again.");
-            }
-          }
-        }}
-        type="button"
-      >
-        <MdDeleteForever className="text-red-500 text-2xl group-hover:text-red-600 group-hover:scale-110 transition-all duration-300" />
-      </button>
-      <div className="max-w-6xl w-full mx-auto space-y-6">
+    <div className="min-h-screen bg-background relative px-4 py-6 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              {document.title || "Untitled Document"}
-            </h1>
-            <p className="text-gray-600">
-              Created: {new Date(document.created_at).toLocaleDateString()}
-            </p>
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6 sm:mb-8">
+          <div className="flex-1">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-2 break-words">
+                  {document.title || "Untitled Document"}
+                </h1>
+                <p className="text-sm sm:text-base text-gray-600">
+                  Created: {new Date(document.created_at).toLocaleDateString()}
+                </p>
+              </div>
+              <button
+                className="group p-2 sm:p-3 rounded-full bg-white shadow-lg hover:bg-red-100 focus:outline-none cursor-pointer touch-manipulation flex-shrink-0"
+                aria-label="Delete Document"
+                title="Delete Document"
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  const confirm = window.confirm("Are you sure you want to delete this document?");
+                  if (confirm) {
+                    try {
+                      await deleteDocument(documentId);
+                      navigate("/dashboard");
+                    } catch (error) {
+                      alert("Failed to delete document. Please try again.");
+                    }
+                  }
+                }}
+                type="button"
+              >
+                <MdDeleteForever className="text-red-500 text-xl sm:text-2xl group-hover:text-red-600 group-hover:scale-110 transition-all duration-300" />
+              </button>
+            </div>
           </div>
           <div className="flex items-center gap-4">
-              {/* Delete button moved to top right, so remove from here */}
             <button
               onClick={() => navigate("/dashboard")}
-              className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
+              className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors text-sm sm:text-base"
             >
               <svg
-                className="w-5 h-5"
+                className="w-4 h-4 sm:w-5 sm:h-5"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -161,20 +163,22 @@ export const DocumentViewer = ({ userScores, setUserScores, activeUser, handleGe
                   d="M15 19l-7-7 7-7"
                 />
               </svg>
-              Back to Dashboard
+              <span className="hidden sm:inline">Back to Dashboard</span>
+              <span className="sm:hidden">Back</span>
             </button>
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-6">
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Document Content */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">
+          <div className="lg:col-span-2 order-2 lg:order-1">
+            <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-3 sm:mb-4">
                 Document Content
               </h2>
               <div className="prose max-w-none">
-                <p className="text-gray-700 whitespace-pre-wrap">
+                <p className="text-sm sm:text-base text-gray-700 whitespace-pre-wrap leading-relaxed">
                   {document.document_content}
                 </p>
               </div>
@@ -182,14 +186,14 @@ export const DocumentViewer = ({ userScores, setUserScores, activeUser, handleGe
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6 order-1 lg:order-2">
             {/* Topic Scores */}
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">
+            <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">
                 Topic Scores
               </h3>
               {document.topic_scores && document.topic_scores.length > 0 ? (
-                <div className="space-y-3">
+                <div className="space-y-2 sm:space-y-3">
                   {document.topic_scores.map((scoreObj, index) => {
                     const topic = Object.keys(scoreObj)[0];
                     const score = scoreObj[topic];
@@ -198,10 +202,10 @@ export const DocumentViewer = ({ userScores, setUserScores, activeUser, handleGe
                         key={index}
                         className="flex justify-between items-center"
                       >
-                        <span className="text-sm font-medium text-gray-700">
+                        <span className="text-xs sm:text-sm font-medium text-gray-700 truncate mr-2">
                           {topic}
                         </span>
-                        <span className="text-sm font-bold text-blue-600">
+                        <span className="text-xs sm:text-sm font-bold text-blue-600 flex-shrink-0">
                           {score}/10
                         </span>
                       </div>
@@ -209,21 +213,21 @@ export const DocumentViewer = ({ userScores, setUserScores, activeUser, handleGe
                   })}
                 </div>
               ) : (
-                <p className="text-gray-500 italic">
+                <p className="text-xs sm:text-sm text-gray-500 italic">
                   No topic scores available
                 </p>
               )}
             </div>
 
             {/* Generate New Quiz */}
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">
+            <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">
                 Generate New Quiz
               </h3>
 
               {/* Topic Selection */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="mb-3 sm:mb-4">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                   Select Topics
                 </label>
                 {document.topic_scores && document.topic_scores.length > 0 ? (
@@ -236,27 +240,27 @@ export const DocumentViewer = ({ userScores, setUserScores, activeUser, handleGe
                             type="checkbox"
                             checked={selectedTopics.includes(topic)}
                             onChange={() => toggleTopic(topic)}
-                            className="mr-2"
+                            className="mr-2 w-4 h-4 sm:w-5 sm:h-5"
                           />
-                          <span className="text-sm text-gray-700">{topic}</span>
+                          <span className="text-xs sm:text-sm text-gray-700 break-words">{topic}</span>
                         </label>
                       );
                     })}
                   </div>
                 ) : (
-                  <p className="text-gray-500 italic">No topics available</p>
+                  <p className="text-xs sm:text-sm text-gray-500 italic">No topics available</p>
                 )}
               </div>
 
               {/* Number of Questions */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="mb-3 sm:mb-4">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                   Number of Questions
                 </label>
                 <select
                   value={numQuestions}
                   onChange={(e) => setNumQuestions(Number(e.target.value))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
                 >
                   <option value={5}>5 Questions</option>
                   <option value={10}>10 Questions</option>
@@ -270,7 +274,7 @@ export const DocumentViewer = ({ userScores, setUserScores, activeUser, handleGe
               <button
                 onClick={handleGenerateNewQuiz}
                 disabled={selectedTopics.length === 0 || generatingQuiz}
-                className="w-full quiz-btn"
+                className="w-full quiz-btn text-sm sm:text-base py-2 sm:py-3"
               >
                 {generatingQuiz ? "Generating Quiz..." : "Generate New Quiz"}
               </button>
@@ -278,15 +282,15 @@ export const DocumentViewer = ({ userScores, setUserScores, activeUser, handleGe
 
             {/* Previous Questions */}
             {document.questions && document.questions.length > 0 && (
-              <div className="bg-white rounded-lg shadow-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">
+              <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">
                   Previous Questions ({document.questions.length} / 10)
                 </h3>
-                <div className="space-y-2 max-h-40 overflow-y-auto">
+                <div className="space-y-2 max-h-32 sm:max-h-40 overflow-y-auto">
                   {document.questions.slice(-10).map((question, index) => (
                     <div
                       key={index}
-                      className="text-sm text-gray-600 p-2 bg-gray-50 rounded"
+                      className="text-xs sm:text-sm text-gray-600 p-2 bg-gray-50 rounded"
                     >
                       {question.question || question}
                     </div>

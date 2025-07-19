@@ -20,7 +20,7 @@ export const QuizPage = ({
   if (!localQuestions || localQuestions.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 text-center">
           No Quiz Questions
         </h1>
         <button onClick={() => navigate("/dashboard")} className="quiz-btn">
@@ -164,116 +164,137 @@ export const QuizPage = ({
 
   // Quiz in progress
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="max-w-4xl w-full bg-white rounded-2xl shadow-2xl p-8">
-        {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-medium text-gray-600">
-              Question {currentQuestionIndex + 1} of {localQuestions.length}
-            </span>
-            <span className="text-sm font-medium text-gray-600">
-              {Math.round(
-                ((currentQuestionIndex + 1) / localQuestions.length) * 100
-              )}
-              % Complete
-            </span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-3">
-            <div
-              className="bg-blue-600 h-3 rounded-full transition-all duration-300 ease-out"
-              style={{
-                width: `${
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-6 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-white rounded-2xl shadow-2xl p-4 sm:p-6 lg:p-8">
+          {/* Progress Bar */}
+          <div className="mb-6 sm:mb-8">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-3 sm:mb-2">
+              <span className="text-xs sm:text-sm font-medium text-gray-600 text-center sm:text-left">
+                Question {currentQuestionIndex + 1} of {localQuestions.length}
+              </span>
+              <span className="text-xs sm:text-sm font-medium text-gray-600 text-center sm:text-right">
+                {Math.round(
                   ((currentQuestionIndex + 1) / localQuestions.length) * 100
-                }%`,
-              }}
-            ></div>
+                )}
+                % Complete
+              </span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2 sm:h-3">
+              <div
+                className="bg-blue-600 h-2 sm:h-3 rounded-full transition-all duration-300 ease-out"
+                style={{
+                  width: `${
+                    ((currentQuestionIndex + 1) / localQuestions.length) * 100
+                  }%`,
+                }}
+              ></div>
+            </div>
           </div>
-        </div>
 
-        {/* Question */}
-        <div className="mb-8">
-          {/* Topic Badge */}
-          <div className="flex justify-center mb-4">
-            <span className="px-4 py-2 bg-blue-100 text-blue-800 text-sm font-medium rounded-full">
-              Topic: {currentQuestion.topic || "General"}
-            </span>
-          </div>
+          {/* Question */}
+          <div className="mb-6 sm:mb-8">
+            {/* Topic Badge */}
+            <div className="flex justify-center mb-3 sm:mb-4">
+              <span className="px-3 sm:px-4 py-1 sm:py-2 bg-blue-100 text-blue-800 text-xs sm:text-sm font-medium rounded-full">
+                Topic: {currentQuestion.topic || "General"}
+              </span>
+            </div>
 
-          <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">
-            {currentQuestion.question}
-          </h1>
+            <h1 className="text-lg sm:text-2xl lg:text-3xl font-bold text-gray-800 mb-4 sm:mb-6 text-center leading-tight">
+              {currentQuestion.question}
+            </h1>
 
-          {/* Options */}
-          <div className="space-y-4">
-            {currentQuestion.options.map((option, index) => (
-              <label
-                key={index}
-                className={`flex items-center p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:bg-blue-50 ${
-                  selectedOption === option
-                    ? "border-blue-500 bg-blue-50 ring-2 ring-blue-200"
-                    : "border-gray-200 hover:border-blue-300"
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="quiz-option"
-                  value={option}
-                  checked={selectedOption === option}
-                  onChange={() => handleOptionSelect(option)}
-                  className="sr-only"
-                />
-                <div
-                  className={`w-5 h-5 rounded-full border-2 mr-4 flex items-center justify-center ${
+            {/* Options */}
+            <div className="space-y-3 sm:space-y-4">
+              {currentQuestion.options.map((option, index) => (
+                <label
+                  key={index}
+                  className={`flex items-start sm:items-center p-3 sm:p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:bg-blue-50 touch-manipulation ${
                     selectedOption === option
-                      ? "border-blue-500 bg-blue-500"
-                      : "border-gray-300"
+                      ? "border-blue-500 bg-blue-50 ring-2 ring-blue-200"
+                      : "border-gray-200 hover:border-blue-300"
                   }`}
                 >
-                  {selectedOption === option && (
-                    <div className="w-2 h-2 rounded-full bg-white"></div>
-                  )}
-                </div>
-                <span className="text-lg text-gray-700 font-medium">
-                  {option}
-                </span>
-              </label>
-            ))}
-          </div>
-        </div>
-
-        {/* Navigation Buttons */}
-        <div className="flex justify-between items-center">
-          <button
-            onClick={handlePrevious}
-            disabled={currentQuestionIndex === 0}
-            className="quiz-btn"
-          >
-            Previous
-          </button>
-
-          <div className="flex space-x-2">
-            {localQuestions.map((_, index) => (
-              <div
-                key={index}
-                className={`w-3 h-3 rounded-full ${
-                  index < currentQuestionIndex
-                    ? "bg-green-500"
-                    : index === currentQuestionIndex
-                    ? "bg-blue-500"
-                    : "bg-gray-300"
-                }`}
-              ></div>
-            ))}
+                  <input
+                    type="radio"
+                    name="quiz-option"
+                    value={option}
+                    checked={selectedOption === option}
+                    onChange={() => handleOptionSelect(option)}
+                    className="sr-only"
+                  />
+                  <div
+                    className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full border-2 mr-3 sm:mr-4 flex items-center justify-center flex-shrink-0 mt-0.5 sm:mt-0 ${
+                      selectedOption === option
+                        ? "border-blue-500 bg-blue-500"
+                        : "border-gray-300"
+                    }`}
+                  >
+                    {selectedOption === option && (
+                      <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-white"></div>
+                    )}
+                  </div>
+                  <span className="text-sm sm:text-lg text-gray-700 font-medium leading-relaxed">
+                    {option}
+                  </span>
+                </label>
+              ))}
+            </div>
           </div>
 
-          <button
-            onClick={handleNext}
-            disabled={!selectedOption}
-            className="quiz-btn"
-          >
-            {isLastQuestion ? "Finish Quiz" : "Next"}
-          </button>
+          {/* Navigation Buttons */}
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-0">
+            <button
+              onClick={handlePrevious}
+              disabled={currentQuestionIndex === 0}
+              className="quiz-btn w-full sm:w-auto text-sm sm:text-base py-2 sm:py-3"
+            >
+              Previous
+            </button>
+
+            {/* Question Dots - Hidden on mobile to save space */}
+            <div className="hidden sm:flex space-x-2">
+              {localQuestions.map((_, index) => (
+                <div
+                  key={index}
+                  className={`w-3 h-3 rounded-full ${
+                    index < currentQuestionIndex
+                      ? "bg-green-500"
+                      : index === currentQuestionIndex
+                      ? "bg-blue-500"
+                      : "bg-gray-300"
+                  }`}
+                ></div>
+              ))}
+            </div>
+
+            <button
+              onClick={handleNext}
+              disabled={!selectedOption}
+              className="quiz-btn w-full sm:w-auto text-sm sm:text-base py-2 sm:py-3"
+            >
+              {isLastQuestion ? "Finish Quiz" : "Next"}
+            </button>
+          </div>
+
+          {/* Mobile Question Counter - Show on mobile instead of dots */}
+          <div className="sm:hidden mt-4 text-center">
+            <div className="flex justify-center space-x-1">
+              {localQuestions.map((_, index) => (
+                <div
+                  key={index}
+                  className={`w-2 h-2 rounded-full ${
+                    index < currentQuestionIndex
+                      ? "bg-green-500"
+                      : index === currentQuestionIndex
+                      ? "bg-blue-500"
+                      : "bg-gray-300"
+                  }`}
+                ></div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </div>
