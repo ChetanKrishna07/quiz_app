@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Link } from "react-router-dom";
+import { GrGithub } from "react-icons/gr";
 
 export const Navbar = ({ activeUser, setActiveUser, currentUser, onLogout }) => {
   const [showDropdown, setShowDropdown] = useState(false);
@@ -93,68 +94,82 @@ export const Navbar = ({ activeUser, setActiveUser, currentUser, onLogout }) => 
               </Link>
             </div>
 
-            {/* User Menu - Desktop Only */}
-            <div className="hidden md:flex items-center space-x-3">
-              {currentUser && (
-                <div className="relative">
-                  <button
-                    onClick={() => setShowDropdown(!showDropdown)}
-                    className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50 transition-all duration-200 group"
-                  >
-                    <div className="w-8 h-8 sm:w-9 sm:h-9 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-200 group-hover:scale-105">
-                      <span className="text-white font-semibold text-sm">
-                        {displayName.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                    <div className="hidden lg:block text-left">
-                      <div className="text-sm font-medium text-gray-900">Hi, {displayName}</div>
-                      <div className="text-xs text-gray-500">{currentUser.email}</div>
-                    </div>
-                    <svg 
-                      className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${
-                        showDropdown ? 'rotate-180' : ''
-                      }`} 
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
-                  
-                  {showDropdown && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-200/50 backdrop-blur-sm z-50">
-                      <div className="p-2">
-                        <button
-                          onClick={handleLogout}
-                          className="flex items-center w-full px-3 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg transition-all duration-200 group"
-                        >
-                          <svg className="w-4 h-4 mr-3 text-gray-400 group-hover:text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                          </svg>
-                          Sign out
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Mobile menu button */}
-            <div className="md:hidden">
-              <button
-                onClick={() => setShowMobileMenu(!showMobileMenu)}
-                className="p-2 rounded-lg text-gray-700 hover:text-indigo-600 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200"
+            {/* Right side - User Menu and GitHub Icon */}
+            <div className="flex items-center space-x-3">
+              {/* GitHub Icon - Desktop */}
+              <a
+                href="https://github.com/ChetanKrishna07/quiz_app"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hidden md:flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all duration-200 group"
+                title="View on GitHub"
               >
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  {showMobileMenu ? (
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  ) : (
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                  )}
-                </svg>
-              </button>
+                <GrGithub className="w-7 h-7 group-hover:scale-110 transition-transform duration-200" />
+              </a>
+
+              {/* User Menu - Desktop Only */}
+              <div className="hidden md:flex items-center space-x-3">
+                {currentUser && (
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowDropdown(!showDropdown)}
+                      className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50 transition-all duration-200 group"
+                    >
+                      <div className="w-8 h-8 sm:w-9 sm:h-9 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-200 group-hover:scale-105">
+                        <span className="text-white font-semibold text-sm">
+                          {displayName.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="hidden lg:block text-left">
+                        <div className="text-sm font-medium text-gray-900">Hi, {displayName}</div>
+                        <div className="text-xs text-gray-500">{currentUser.email}</div>
+                      </div>
+                      <svg 
+                        className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${
+                          showDropdown ? 'rotate-180' : ''
+                        }`} 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    
+                    {showDropdown && (
+                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-200/50 backdrop-blur-sm z-50">
+                        <div className="p-2">
+                          <button
+                            onClick={handleLogout}
+                            className="flex items-center w-full px-3 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg transition-all duration-200 group"
+                          >
+                            <svg className="w-4 h-4 mr-3 text-gray-400 group-hover:text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                            </svg>
+                            Sign out
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Mobile menu button */}
+              <div className="md:hidden">
+                <button
+                  onClick={() => setShowMobileMenu(!showMobileMenu)}
+                  className="p-2 rounded-lg text-gray-700 hover:text-indigo-600 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200"
+                >
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    {showMobileMenu ? (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    ) : (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                    )}
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -191,6 +206,19 @@ export const Navbar = ({ activeUser, setActiveUser, currentUser, onLogout }) => 
                 </svg>
                 New Quiz
               </Link>
+              
+              {/* GitHub Link - Mobile */}
+              <a
+                href="https://github.com/ChetanKrishna07/quiz_app"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center px-4 py-3 text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-xl transition-all duration-200"
+                onClick={() => setShowMobileMenu(false)}
+              >
+                <GrGithub className="w-7 h-7 mr-3" />
+                View on GitHub
+              </a>
+              
               {currentUser && (
                 <div className="border-t border-gray-200 pt-4 mt-4">
                   <div className="flex items-center px-4 py-3">
