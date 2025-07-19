@@ -1,8 +1,10 @@
 # Quiz App - AI-Powered Learning Platform
 
+Try it out! [Quiz App](https://quiz-app-chetan.vercel.app/login)
+
 ## Description
 
-Quiz App is my personal project that is a AI-powered learning platform that transforms your documents into interactive quizzes. Built with React, FastAPI, Caddy and OpenAI's API, this application allows users to upload documents (PDF, DOCX, TXT, MD), automatically extract key topics, and generate personalized quiz questions to test their knowledge.
+Quiz App is my personal project aimed to help student learn through custom AI generated quizes. It is an AI-powered learning platform that transforms your documents into interactive quizzes. Built with React, FastAPI, Caddy and OpenAI's API, this application allows users to upload documents (PDF, DOCX, TXT, MD), automatically extract key topics, and generate personalized quiz questions to test their knowledge.
 
 ## Features
 
@@ -17,7 +19,7 @@ Quiz App is my personal project that is a AI-powered learning platform that tran
 ## Tech Stack
 
 ### Frontend
-- **React 19** - Modern React with hooks and functional components
+- **React** - Modern React with hooks and functional components
 - **Vite** - Fast build tool and development server
 - **Tailwind CSS** - Utility-first CSS framework
 - **React Router** - Client-side routing
@@ -31,12 +33,16 @@ Quiz App is my personal project that is a AI-powered learning platform that tran
 - **python-docx** - Microsoft Word document parsing
 - **Uvicorn** - ASGI server
 
-### Infrastructure
+### Deployement
+- **Backend** - Azure Web App
+- **Fronted** - Vercel
+
+### Infrastructure for testing
 - **Docker** - Containerization
 - **Docker Compose** - Multi-container orchestration
 - **Caddy** - Web server for static file serving
 
-## Prerequisites
+## Dev Set up
 
 Before running this application, make sure you have the following installed:
 
@@ -79,10 +85,10 @@ cd quiz_app
 ### 2. Set Environment Variables
 ```bash
 # Set your OpenAI API key
-export OPENAI_API_KEY="your_openai_api_key_here"
+OPENAI_API_KEY="your_openai_api_key_here"
 
 # Set MongoDB URI (if using external MongoDB)
-export MONGO_URI="mongodb://localhost:27017/quiz_app"
+MONGO_URI="mongodb://localhost:27017/quiz_app"
 ```
 
 ### 3. Build and Run with Docker Compose
