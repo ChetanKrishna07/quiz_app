@@ -56,8 +56,6 @@ OPENAI_API_KEY=your_openai_api_key_here
 # MongoDB Connection String (Required)
 MONGO_URI=mongodb://localhost:27017/quiz_app
 
-# API URL (Optional - defaults to http://localhost:4000)
-REACT_APP_API_URL=http://localhost:4000
 ```
 
 ### Getting Your OpenAI API Key

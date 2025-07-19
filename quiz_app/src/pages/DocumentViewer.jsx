@@ -25,9 +25,7 @@ export const DocumentViewer = ({ userScores, setUserScores, activeUser, handleGe
   const loadDocument = async () => {
     try {
       setLoading(true);
-      console.log("DocumentViewer - Loading document with ID:", documentId);
       const response = await getDocument(documentId);
-      console.log("DocumentViewer - Document response:", response);
       setDocument(response.data);
 
       // Initialize selected topics from document's topic scores
@@ -282,10 +280,10 @@ export const DocumentViewer = ({ userScores, setUserScores, activeUser, handleGe
             {document.questions && document.questions.length > 0 && (
               <div className="bg-white rounded-lg shadow-lg p-6">
                 <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                  Previous Questions ({document.questions.length})
+                  Previous Questions ({document.questions.length} / 10)
                 </h3>
                 <div className="space-y-2 max-h-40 overflow-y-auto">
-                  {document.questions.slice(-5).map((question, index) => (
+                  {document.questions.slice(-10).map((question, index) => (
                     <div
                       key={index}
                       className="text-sm text-gray-600 p-2 bg-gray-50 rounded"

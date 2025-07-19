@@ -11,7 +11,6 @@ export const Dashboard = ({ topicScores, activeUser }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log("Dashboard.jsx Topic Scores: ", topicScores);
     loadDocuments();
   }, [activeUser]);
 

@@ -47,7 +47,6 @@ export const Login = ({ setIsAuthenticated, setActiveUser }) => {
       setActiveUser(result.user.uid);
       setIsAuthenticated(true);
       navigate("/dashboard");
-      console.log("User signed in successfully:", result.user);
     } catch (error) {
       console.error("Error signing in:", error);
       if (error.code === "auth/user-not-found") {
@@ -75,7 +74,6 @@ export const Login = ({ setIsAuthenticated, setActiveUser }) => {
       setActiveUser(result.user.uid);
       setIsAuthenticated(true);
       navigate("/dashboard");
-      console.log("User signed in with Google successfully:", result.user);
     } catch (error) {
       console.error("Error signing in with Google:", error);
       if (error.code === "auth/popup-closed-by-user") {

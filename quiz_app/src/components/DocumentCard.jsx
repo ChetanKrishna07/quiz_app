@@ -2,15 +2,11 @@ import React, { useEffect } from "react";
 import { MdDeleteForever } from "react-icons/md";
 
 export const DocumentCard = ({ doc, navigate, handleDeleteDocument }) => {
-  useEffect(() => {
-    console.log("DocumentCard - doc:", doc._id);
-  }, [doc]);
   return (
     <div
       key={doc._id}
       className="bg-gradient-to-br from-gray-50 to-white rounded-xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-shadow duration-300 cursor-pointer"
       onClick={() => {
-        console.log("Dashboard - Navigating to document:", doc._id);
         navigate(`/document/${doc._id}`);
       }}
     >

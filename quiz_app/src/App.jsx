@@ -32,29 +32,24 @@ function App() {
   const [currentUser, setCurrentUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
 
-  // const url = process.env.REACT_APP_API_URL || "http://localhost:4000";
-  const url = "http://localhost:8000";
 
   // Monitor authentication state
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setAuthLoading(true);
       if (user) {
-        console.log("User is authenticated:", user);
         setCurrentUser(user);
         setActiveUser(user.uid);
         setIsAuthenticated(true);
 
         // Ensure user exists in database (only once per session)
         try {
-          console.log("Ensuring user exists in database for UID:", user.uid);
           await createUser(user.uid);
         } catch (error) {
           console.error("Error creating user in database:", error);
           // Don't block authentication for this error
         }
       } else {
-        console.log("User is not authenticated");
         setCurrentUser(null);
         setActiveUser(null);
         setIsAuthenticated(false);
@@ -116,12 +111,6 @@ function App() {
   };
 
   const handleGenerateQuiz = async (textContent, selectedTopics, numQuestions, documentId, previousQuestions = []) => {
-    console.log("App.jsx handleGenerateQuiz called with:");
-    console.log("  - textContent length:", textContent?.length);
-    console.log("  - selectedTopics:", selectedTopics);
-    console.log("  - numQuestions:", numQuestions);
-    console.log("  - documentId:", documentId);
-    console.log("  - previousQuestions count:", previousQuestions.length);
     
     // Validate required parameters
     if (!documentId) {
@@ -149,10 +138,8 @@ function App() {
       
       // Add questions to database
       if (questions.length > 0) {
-        console.log("App.jsx Adding questions to database for document:", documentId);
         const questionsList = questions.map(q => q.question);
         await updateDocumentQuestions(documentId, questionsList);
-        console.log("App.jsx Questions added to database successfully");
       }
       
       setQuestions(questions);

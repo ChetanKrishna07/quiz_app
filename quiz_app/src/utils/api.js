@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:8000";
+const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:4000";
 
 // API utility functions for user and document management
 
@@ -13,9 +13,6 @@ export const parseFile = async (file) => {
   try {
     const formData = new FormData();
     formData.append("file", file);
-    console.log("Parsing file:", file);
-    console.log("Form data:", formData.get("file"));
-
     const response = await axios.post(`${API_BASE_URL}/parse_file`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
@@ -27,7 +24,6 @@ export const parseFile = async (file) => {
       return "Error parsing file";
     }
   } catch (error) {
-    console.log(error);
     return "Error parsing file";
   }
 };
@@ -208,7 +204,6 @@ export const updateDocumentScores = async (documentId, topicScores) => {
  */
 export const updateDocumentQuestions = async (documentId, questions) => {
   try {
-    console.log("Updating document questions:", questions);
     const data = { questions: questions };
     const response = await axios.put(
       `${API_BASE_URL}/documents/${documentId}/questions`,

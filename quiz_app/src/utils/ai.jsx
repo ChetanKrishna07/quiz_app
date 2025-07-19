@@ -34,15 +34,11 @@ const extractTopics = async (textContent, currentTopics = []) => {
     ${textContent}
     `;
 
-  console.log("ai.jsx: prompt: ", prompt);
-
   const response = await ai.chat.completions.create({
     model: model,
     messages: [{ role: "user", content: prompt }],
     temperature: 0.7,
   });
-
-  console.log("ai.jsx: ", response.choices[0].message.content);
 
   return response.choices[0].message.content;
 };
@@ -55,7 +51,6 @@ const parseTopics = async (topicsResponse) => {
     parsed = parsed.replace(/^```/g, "");
     parsed = parsed.replace(/\n```/g, "");
     parsed = JSON.parse(parsed);
-    console.log("ai.jsx Parsed topics: ", parsed);
     return parsed.topics || [];
   } catch (error) {
     console.error("Error parsing topics:", error);
@@ -107,7 +102,6 @@ const parseQuizQuestion = async (question) => {
     parsed = parsed.replace(/\n```/g, "");
     parsed = parsed.replace(/^```/g, "");
     parsed = JSON.parse(parsed);
-    console.log("ai.jsx Parsed: ", parsed);
     return parsed;
   } catch (error) {
     console.error("Error parsing quiz question:", error);
@@ -116,10 +110,8 @@ const parseQuizQuestion = async (question) => {
 };
 
 export const getTopicsFromText = async (textContent, currentTopics = []) => {
-  console.log("ai.jsx: getTopicsFromText: ", textContent);
   const topicsResponse = await extractTopics(textContent, currentTopics);
   const topics = await parseTopics(topicsResponse);
-  console.log("ai.jsx Topics: ", topics);
   return topics;
 };
 
@@ -153,7 +145,6 @@ export const generateQuiz = async (
   previousQuestions,
   numQuestions
 ) => {
-  console.log("ai.jsx: generateQuiz: ", textContent);
   const questions = [];
   const topicsToUse = topics.length > 0 ? topics : ["general"];
 

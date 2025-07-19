@@ -51,10 +51,6 @@ export const TopicSelectionPage = ({
     }
   };
 
-  console.log("TopicSelectionPage.jsx Rendered with:");
-  console.log("  - Extracted topics: ", extractedTopics);
-  console.log("  - Selected topics: ", selectedTopics);
-
   const removeTopic = (indexToRemove) => {
     setSelectedTopics(
       selectedTopics.filter((_, index) => index !== indexToRemove)
@@ -75,16 +71,9 @@ export const TopicSelectionPage = ({
   };
 
   const onGenerateQuiz = async () => {
-    console.log("TopicSelectionPage.jsx onGenerateQuiz called");
-    console.log("  - selectedTopics:", selectedTopics);
-    console.log("  - selectedTopics.length:", selectedTopics.length);
-
     if (selectedTopics.length > 0) {
       try {
         setLoading(true);
-        console.log(
-          "TopicSelectionPage.jsx Processing topics for quiz generation"
-        );
 
         // Initialize scores for new topics and update user scores
         const updatedScores = { ...userScores };
@@ -108,22 +97,7 @@ export const TopicSelectionPage = ({
           title: documentName || "Untitled Document",
         };
 
-        console.log("TopicSelectionPage.jsx Saving document:", documentData);
-        console.log(
-          "TopicSelectionPage.jsx Document topic_scores:",
-          documentData.topic_scores
-        );
-
         const savedDocument = await createDocument(documentData);
-        console.log("TopicSelectionPage.jsx Document saved:", savedDocument);
-        console.log(
-          "TopicSelectionPage.jsx savedDocument.data:",
-          savedDocument.data
-        );
-        console.log(
-          "TopicSelectionPage.jsx savedDocument.data.id:",
-          savedDocument.data?.id
-        );
 
         // Check if document was created successfully
         if (!savedDocument.data?._id) {
@@ -153,11 +127,9 @@ export const TopicSelectionPage = ({
       } catch (error) {
         console.error("Error generating quiz:", error);
         setLoading(false);
-      } 
+      }
     } else {
-      console.log(
-        "TopicSelectionPage.jsx No topics selected, not generating quiz"
-      );
+      alert("No topics selected, not generating quiz");
     }
   };
 
