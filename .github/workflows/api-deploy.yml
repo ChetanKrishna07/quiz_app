@@ -5,7 +5,7 @@ on:
   push:
     # Only trigger when files in the api/ folder change
     paths:
-      - 'api/**'
+      - "api/**"
 
 jobs:
   build-and-deploy:
@@ -31,14 +31,3 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: chetannaruto07/quiz-app-api:latest
-
-      - name: Azure Login via Service Principal
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Sync container on Azure Web App
-        run: |
-          az webapp deployment container sync \
-            --resource-group quiz-api-rg \
-            --name quiz-api

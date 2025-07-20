@@ -54,7 +54,7 @@ class GenerateDocumentNameRequest(BaseModel):
 
 @app.get("/")
 def read_root():
-    return {"message": "Hello, World v3 new token!"}
+    return {"message": "Hello, World CD!"}
 
 @app.post("/parse_file")
 async def parse_file(file: UploadFile = File(...)):
