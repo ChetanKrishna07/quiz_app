@@ -1,50 +1,53 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FileUpload } from "../components/FileUpload";
-import { Loading } from "../components/Loading";
 import { parseFile } from "../utils/api";
 import { getTopicsFromText } from "../utils/ai";
 
-export const FileParser = ({ userScores, textContent, setTextContent }) => {
+export const FileParser = ({
+  userScores,
+  textContent,
+  setTextContent,
+  setAppLoading,
+}) => {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [localTextContent, setLocalTextContent] = useState(textContent);
 
   const handleExtractTopics = async () => {
     try {
-      setLoading(true);
+      setAppLoading(true);
       const topics = await getTopicsFromText(
         localTextContent,
         Object.keys(userScores)
       );
-      setLoading(false);
+      setAppLoading(false);
       return topics;
     } catch (error) {
       console.error("Error extracting topics:", error);
-      setLoading(false);
+      setAppLoading(false);
       return [];
     }
   };
 
   const handleFileSelect = async (file) => {
     setSelectedFile(file);
-    setLoading(true);
+    setAppLoading(true);
     if (file) {
       const parsedContent = await parseFile(file);
       setLocalTextContent(parsedContent);
     } else {
       setLocalTextContent("");
     }
-    setLoading(false);
+    setAppLoading(false);
   };
 
   const onGenerateQuiz = async () => {
     try {
-      setLoading(true);
+      setAppLoading(true);
       setTextContent(localTextContent);
       // Extract topics from the text content
-      const topics = await handleExtractTopics(localTextContent);
+      const topics = await handleExtractTopics();
       navigate("/topic-selection", {
         state: {
           extractedTopics: topics || [],
@@ -52,9 +55,9 @@ export const FileParser = ({ userScores, textContent, setTextContent }) => {
           selectedFile: selectedFile,
         },
       });
-      setLoading(false);
+      setAppLoading(false);
     } catch (error) {
-      setLoading(false);
+      setAppLoading(false);
       navigate("/topic-selection", {
         state: {
           extractedTopics: [],
@@ -108,8 +111,6 @@ export const FileParser = ({ userScores, textContent, setTextContent }) => {
         </div>
       </div>
 
-      {/* Loading Overlay */}
-      {loading && <Loading />}
     </>
   );
 };

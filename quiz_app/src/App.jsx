@@ -221,6 +221,7 @@ function App() {
                   userScores={userScores}
                   textContent={textContent}
                   setTextContent={setTextContent}
+                  setAppLoading={setLoading}
                 />
               </ProtectedRoute>
             }
