@@ -1,6 +1,6 @@
 # Quiz App - AI-Powered Learning Platform
 
-Try it out! [Quiz App](https://quiz-app-chetan.vercel.app/login)
+Try it out! [Quiz App](https://quiz-app-chetan.vercel.app/)
 
 ## Description
 
