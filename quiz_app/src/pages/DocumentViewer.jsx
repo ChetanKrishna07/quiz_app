@@ -56,8 +56,13 @@ export const DocumentViewer = ({ userScores, setUserScores, activeUser, handleGe
     try {
       setGeneratingQuiz(true);
 
-      // Get previous questions from the document
+      // Get previous questions from the document and ensure they're properly formatted
       const previousQuestions = document.questions || [];
+      const formattedPreviousQuestions = previousQuestions.map(q => 
+        typeof q === 'string' ? q : q.question || q
+      );
+
+      console.log("Generating quiz with previous questions:", formattedPreviousQuestions);
 
       // Generate quiz using unified function
       const newQuestions = await handleGenerateQuiz(
@@ -65,17 +70,22 @@ export const DocumentViewer = ({ userScores, setUserScores, activeUser, handleGe
         selectedTopics,
         numQuestions,
         documentId,
-        previousQuestions
+        formattedPreviousQuestions
       );
 
       // Navigate to quiz with new questions
       if (newQuestions && newQuestions.length > 0) {
+        // Refresh the document to get updated questions
+        await loadDocument();
+        
         navigate("/quiz", {
           state: {
             documentId: documentId,
             questions: newQuestions,
           },
         });
+      } else {
+        alert("Failed to generate questions. Please try again.");
       }
     } catch (error) {
       console.error("Error generating new quiz:", error);
@@ -295,6 +305,13 @@ export const DocumentViewer = ({ userScores, setUserScores, activeUser, handleGe
                       {question.question || question}
                     </div>
                   ))}
+                </div>
+                {/* Debug Info */}
+                <div className="mt-3 p-2 bg-blue-50 rounded text-xs text-blue-700">
+                  <strong>Debug Info:</strong><br/>
+                  Total questions in DB: {document.questions.length}<br/>
+                  Selected topics: {selectedTopics.join(', ')}<br/>
+                  Questions to generate: {numQuestions}
                 </div>
               </div>
             )}

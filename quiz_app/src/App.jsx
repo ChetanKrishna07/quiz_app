@@ -128,6 +128,16 @@ function App() {
     try {
       setLoading(true);
       
+      // Clear existing questions to prevent stale data
+      setQuestions([]);
+      
+      console.log("Generating quiz with parameters:", {
+        documentId,
+        selectedTopics,
+        numQuestions,
+        previousQuestionsCount: previousQuestions.length
+      });
+      
       // Generate questions using AI
       const questions = await generateQuiz(
         textContent,
@@ -140,6 +150,7 @@ function App() {
       if (questions.length > 0) {
         const questionsList = questions.map(q => q.question);
         await updateDocumentQuestions(documentId, questionsList);
+        console.log("Successfully generated and saved", questions.length, "questions");
       }
       
       setQuestions(questions);

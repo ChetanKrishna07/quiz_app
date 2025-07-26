@@ -100,20 +100,75 @@ export const generateQuiz = async (
 ) => {
   const questions = [];
   const topicsToUse = topics.length > 0 ? topics : ["general"];
+  
+  // Create a more diverse topic selection pattern
+  const topicSelection = [];
+  for (let i = 0; i < numQuestions; i++) {
+    // Use modulo to cycle through topics, but add some randomness
+    const baseIndex = i % topicsToUse.length;
+    const topic = topicsToUse[baseIndex];
+    topicSelection.push(topic);
+  }
+  
+  // Shuffle the topic selection to add more variety
+  for (let i = topicSelection.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [topicSelection[i], topicSelection[j]] = [topicSelection[j], topicSelection[i]];
+  }
+
+  // Track all questions to detect duplicates
+  const allQuestionTexts = new Set(previousQuestions.map(q => q.toLowerCase().trim()));
 
   for (let i = 0; i < numQuestions; i++) {
-    const topic = topicsToUse[i % topicsToUse.length]; // Cycle through topics
-    const question = await generateQuizQuestion(textContent, topic, [
+    const topic = topicSelection[i];
+    
+    // Get all previous questions to avoid repetition
+    const allPreviousQuestions = [
       ...previousQuestions,
-      ...questions.map((q) => q.question), // Only pass question text, not full objects
-    ]);
-    const parsedQuestion = await parseQuizQuestion(question);
+      ...questions.map((q) => q.question)
+    ];
+    
+    let attempts = 0;
+    let parsedQuestion = null;
+    
+    // Try up to 3 times to get a unique question
+    while (attempts < 3 && !parsedQuestion) {
+      const question = await generateQuizQuestion(
+        textContent, 
+        topic, 
+        allPreviousQuestions
+      );
+      
+      parsedQuestion = await parseQuizQuestion(question);
+      
+      if (parsedQuestion) {
+        const questionText = parsedQuestion.question.toLowerCase().trim();
+        
+        // Check if this question is a duplicate
+        if (allQuestionTexts.has(questionText)) {
+          console.warn(`Duplicate question detected: "${parsedQuestion.question}"`);
+          parsedQuestion = null;
+          attempts++;
+        } else {
+          allQuestionTexts.add(questionText);
+          break;
+        }
+      } else {
+        attempts++;
+      }
+    }
+    
     if (parsedQuestion) {
       // Ensure the topic is included in the question object
       parsedQuestion.topic = topic;
       questions.push(parsedQuestion);
+    } else {
+      console.error(`Failed to generate unique question for topic: ${topic} after ${attempts} attempts`);
+      // Continue with next question instead of retrying indefinitely
     }
   }
+  
+  console.log(`Generated ${questions.length} unique questions out of ${numQuestions} requested`);
   return questions;
 };
 

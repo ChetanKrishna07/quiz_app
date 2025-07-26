@@ -372,35 +372,42 @@ async def generate_quiz(request: GenerateQuizRequest):
         if openai_client is None:
             raise HTTPException(status_code=500, detail="OpenAI client not initialized")
             
+        # Create a more explicit prompt to avoid repetition
+        previous_questions_text = ""
+        if request.previous_questions:
+            previous_questions_text = "PREVIOUS QUESTIONS TO AVOID:\n"
+            for i, q in enumerate(request.previous_questions, 1):
+                previous_questions_text += f"{i}. {q}\n"
+        
         prompt = f"""
-        You are a quiz generator. Please generate a single question based on the following topic: {request.topic}.
+        You are a quiz generator. Generate a SINGLE, UNIQUE question based on the topic: {request.topic}.
 
-        OUTPUTFORMAT:
+        CRITICAL REQUIREMENTS:
+        1. Generate EXACTLY ONE question
+        2. The question MUST be completely different from any previous questions, not even similar to them.
+        3. Focus on different aspects of the topic that haven't been covered
+        4. Use different question formats (multiple choice, true/false, fill-in-the-blank, etc.)
+        5. Base the question ONLY on the provided text content
 
+        {previous_questions_text}
+
+        TOPIC: {request.topic}
+        TEXT CONTENT: {request.text_content[:2000]}...
+
+        OUTPUT FORMAT (JSON only):
         {{
             "question": "What is the capital of France?",
             "options": ["Paris", "London", "Berlin", "Madrid"],
             "answer": "Paris"
         }}
-        
-        Generate exactly one question, in the output format. No other text or explanation.
-        
-        The quiz should be based only on the text content, and not on any other information.
-        Make sure you do not repeat the previous questions.
 
-        The previous questions are: 
-        
-        {', '.join(request.previous_questions) if request.previous_questions else 'None'}
-
-        The text content is:
-
-        {request.text_content}.
+        IMPORTANT: Ensure your question is completely different from the previous questions listed above.
         """
 
         response = openai_client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}],
-            temperature=0.7,
+            temperature=0.7,  # Increased temperature for more variety
         )
 
         content = response.choices[0].message.content
