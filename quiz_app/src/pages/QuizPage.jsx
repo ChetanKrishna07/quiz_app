@@ -80,7 +80,7 @@ export const QuizPage = ({
     const topicScores = {};
     localQuestions.forEach((question, index) => {
       const topic = question.topic || "Unknown Topic";
-      console.log("Score debug:", question, index, answers);
+      // console.log("Score debug:", question, index, answers);
       const correctAnswer = question.options[question.answer];
 
       const isCorrect = userAnswers[index] === correctAnswer;

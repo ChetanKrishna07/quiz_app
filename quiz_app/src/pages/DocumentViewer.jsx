@@ -64,10 +64,10 @@ export const DocumentViewer = ({
         typeof q === "string" ? q : q.question || q
       );
 
-      console.log(
-        "Generating quiz with previous questions:",
-        formattedPreviousQuestions
-      );
+      // console.log(
+      //   "Generating quiz with previous questions:",
+      //   formattedPreviousQuestions
+      // );
 
       // Generate quiz using unified function
       const newQuestions = await handleGenerateQuiz(

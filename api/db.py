@@ -14,7 +14,6 @@ logger = logging.getLogger(__name__)
 try:
     # Use environment variable for MongoDB URI, fallback to localhost for development
     mongodb_uri = os.getenv('MONGO_URI', 'localhost:27017')
-    print(f"Connecting to MongoDB at {mongodb_uri}...")
     if mongodb_uri.startswith('mongodb://'):
         client = pymongo.MongoClient(mongodb_uri)
     else:

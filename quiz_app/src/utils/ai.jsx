@@ -122,7 +122,7 @@ const getTopicDist = (topic_scores, numQuestions, alpha = 0.05) => {
       total = Object.values(uniformDist).reduce((a, b) => a + b, 0);
     }
 
-    console.log("Exploring with uniform distribution:", uniformDist);
+    // console.log("Exploring with uniform distribution:", uniformDist);
     return uniformDist;
   }
 
@@ -154,7 +154,7 @@ const getTopicDist = (topic_scores, numQuestions, alpha = 0.05) => {
     result[topic] = questionDist[i];
   });
 
-  console.log("topic_dist:", result);
+  // console.log("topic_dist:", result);
 
   return result;
 };
@@ -181,11 +181,11 @@ export const generateQuiz = async (
     }
   });
 
-  console.log("User topic scores:", user_topic_scores);
-  console.log("Current topic scores:", current_topic_scores);
+  // console.log("User topic scores:", user_topic_scores);
+  // console.log("Current topic scores:", current_topic_scores);
 
   const topicDistribution = getTopicDist(current_topic_scores, numQuestions);
-  console.log("Topic distribution:", topicDistribution);
+  // console.log("Topic distribution:", topicDistribution);
 
   // Create a topic selection array based on distribution
   const topicSelection = [];
@@ -195,7 +195,7 @@ export const generateQuiz = async (
     }
   });
   
-  console.log("Topic selection array:", topicSelection);
+  // console.log("Topic selection array:", topicSelection);
   
 
   // Shuffle the topic selection to add more variety
@@ -265,9 +265,9 @@ export const generateQuiz = async (
     }
   }
 
-  console.log(
-    `Generated ${questions.length} unique questions out of ${numQuestions} requested`
-  );
+  // console.log(
+  //   `Generated ${questions.length} unique questions out of ${numQuestions} requested`
+  // );
   return questions;
 };
 

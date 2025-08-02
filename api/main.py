@@ -59,7 +59,6 @@ def read_root():
 @app.post("/parse_file")
 async def parse_file(file: UploadFile = File(...)):
     try:
-        print(file)
         file_content = await file.read()
         filename = file.filename.lower() if file.filename else ""
         
