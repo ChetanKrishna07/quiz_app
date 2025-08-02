@@ -10,7 +10,7 @@ Quiz App is my personal project aimed to help student learn through custom AI ge
 
 - **📄 Document Processing**: Upload and parse PDF, DOCX, TXT, and Markdown files
 - **🤖 AI-Powered Topic Extraction**: Automatically identify key topics from your content using OpenAI GPT-4
-- **🎯 Interactive Quizzes**: Generate multiple-choice questions based on extracted topics
+- **🎯 Adaptive Quiz Generation**: Creates personalized multiple-choice questions using Softmax distribution to focus on topics where you need the most improvement
 - **📊 Progress Tracking**: Monitor your learning progress across different topics with a comprehensive dashboard
 - **🔐 User Authentication**: Secure login with Firebase Authentication (Google Sign-in and Email/Password)
 - **📱 Responsive Design**: Modern, mobile-friendly interface built with Tailwind CSS
