@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import {
-  getDocument,
-  deleteDocument,
-} from "../utils/api";
+import { getDocument, deleteDocument } from "../utils/api";
 import { Loading } from "../components/Loading";
 import { MdDeleteForever } from "react-icons/md";
 
-export const DocumentViewer = ({ userScores, setUserScores, activeUser, handleGenerateQuiz }) => {
+export const DocumentViewer = ({
+  userScores,
+  setUserScores,
+  activeUser,
+  handleGenerateQuiz,
+}) => {
   const { documentId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
@@ -16,7 +18,7 @@ export const DocumentViewer = ({ userScores, setUserScores, activeUser, handleGe
   const [loading, setLoading] = useState(true);
   const [generatingQuiz, setGeneratingQuiz] = useState(false);
   const [selectedTopics, setSelectedTopics] = useState([]);
-  const [numQuestions, setNumQuestions] = useState(10);
+  const [numQuestions, setNumQuestions] = useState(5);
 
   useEffect(() => {
     loadDocument();
@@ -58,11 +60,14 @@ export const DocumentViewer = ({ userScores, setUserScores, activeUser, handleGe
 
       // Get previous questions from the document and ensure they're properly formatted
       const previousQuestions = document.questions || [];
-      const formattedPreviousQuestions = previousQuestions.map(q => 
-        typeof q === 'string' ? q : q.question || q
+      const formattedPreviousQuestions = previousQuestions.map((q) =>
+        typeof q === "string" ? q : q.question || q
       );
 
-      console.log("Generating quiz with previous questions:", formattedPreviousQuestions);
+      // console.log(
+      //   "Generating quiz with previous questions:",
+      //   formattedPreviousQuestions
+      // );
 
       // Generate quiz using unified function
       const newQuestions = await handleGenerateQuiz(
@@ -77,7 +82,7 @@ export const DocumentViewer = ({ userScores, setUserScores, activeUser, handleGe
       if (newQuestions && newQuestions.length > 0) {
         // Refresh the document to get updated questions
         await loadDocument();
-        
+
         navigate("/quiz", {
           state: {
             documentId: documentId,
@@ -139,7 +144,9 @@ export const DocumentViewer = ({ userScores, setUserScores, activeUser, handleGe
                 title="Delete Document"
                 onClick={async (e) => {
                   e.stopPropagation();
-                  const confirm = window.confirm("Are you sure you want to delete this document?");
+                  const confirm = window.confirm(
+                    "Are you sure you want to delete this document?"
+                  );
                   if (confirm) {
                     try {
                       await deleteDocument(documentId);
@@ -252,13 +259,17 @@ export const DocumentViewer = ({ userScores, setUserScores, activeUser, handleGe
                             onChange={() => toggleTopic(topic)}
                             className="mr-2 w-4 h-4 sm:w-5 sm:h-5"
                           />
-                          <span className="text-xs sm:text-sm text-gray-700 break-words">{topic}</span>
+                          <span className="text-xs sm:text-sm text-gray-700 break-words">
+                            {topic}
+                          </span>
                         </label>
                       );
                     })}
                   </div>
                 ) : (
-                  <p className="text-xs sm:text-sm text-gray-500 italic">No topics available</p>
+                  <p className="text-xs sm:text-sm text-gray-500 italic">
+                    No topics available
+                  </p>
                 )}
               </div>
 
@@ -305,13 +316,6 @@ export const DocumentViewer = ({ userScores, setUserScores, activeUser, handleGe
                       {question.question || question}
                     </div>
                   ))}
-                </div>
-                {/* Debug Info */}
-                <div className="mt-3 p-2 bg-blue-50 rounded text-xs text-blue-700">
-                  <strong>Debug Info:</strong><br/>
-                  Total questions in DB: {document.questions.length}<br/>
-                  Selected topics: {selectedTopics.join(', ')}<br/>
-                  Questions to generate: {numQuestions}
                 </div>
               </div>
             )}

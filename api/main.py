@@ -54,12 +54,11 @@ class GenerateDocumentNameRequest(BaseModel):
 
 @app.get("/")
 def read_root():
-    return {"message": "Hello, World CD with webhook test!"}
+    return {"message": "Hey! Looks like you just found access to the API! What did I do wrong? :) chetankrishna.edu@gmail.com"}
 
 @app.post("/parse_file")
 async def parse_file(file: UploadFile = File(...)):
     try:
-        print(file)
         file_content = await file.read()
         filename = file.filename.lower() if file.filename else ""
         
@@ -381,15 +380,20 @@ async def generate_quiz(request: GenerateQuizRequest):
         
         prompt = f"""
         You are a quiz generator. Generate a SINGLE, UNIQUE question based on the topic: {request.topic}.
-
+        
         CRITICAL REQUIREMENTS:
         1. Generate EXACTLY ONE question
         2. The question MUST be completely different from any previous questions, not even similar to them.
         3. Focus on different aspects of the topic that haven't been covered
-        4. Use different question formats (multiple choice, true/false, fill-in-the-blank, etc.)
+        4. Only generate multiple-choice questions with 4 options
         5. Base the question ONLY on the provided text content
+        
+        
+        PREVIOUS QUESTIONS TO AVOID:
 
         {previous_questions_text}
+        
+        TOPIC INFO:
 
         TOPIC: {request.topic}
         TEXT CONTENT: {request.text_content[:2000]}...
@@ -398,7 +402,7 @@ async def generate_quiz(request: GenerateQuizRequest):
         {{
             "question": "What is the capital of France?",
             "options": ["Paris", "London", "Berlin", "Madrid"],
-            "answer": "Paris"
+            "answer": 0  # Index of the correct answer in the options array
         }}
 
         IMPORTANT: Ensure your question is completely different from the previous questions listed above.

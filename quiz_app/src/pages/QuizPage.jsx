@@ -68,7 +68,8 @@ export const QuizPage = ({
   const calculateScore = (answers = userAnswers) => {
     let score = 0;
     localQuestions.forEach((question, index) => {
-      if (answers[index] === question.answer) {
+      const correctAnswer = question.options[question.answer];
+      if (answers[index] === correctAnswer) {
         score++;
       }
     });
@@ -79,7 +80,10 @@ export const QuizPage = ({
     const topicScores = {};
     localQuestions.forEach((question, index) => {
       const topic = question.topic || "Unknown Topic";
-      const isCorrect = answers[index] === question.answer;
+      // console.log("Score debug:", question, index, answers);
+      const correctAnswer = question.options[question.answer];
+
+      const isCorrect = userAnswers[index] === correctAnswer;
       if (!topicScores[topic]) {
         topicScores[topic] = { correct: 0, total: 0 };
       }
@@ -99,7 +103,8 @@ export const QuizPage = ({
         currentScores[topic] = 0;
       }
       if (answers[index] !== undefined) {
-        const isCorrect = answers[index] === question.answer;
+        const correctAnswer = question.options[question.answer];
+        const isCorrect = answers[index] === correctAnswer;
         currentScores[topic] += isCorrect ? 0.5 : -0.5;
         currentScores[topic] = Math.max(0, Math.min(10, currentScores[topic]));
       }
@@ -121,7 +126,8 @@ export const QuizPage = ({
           updatedScores[topic] = 0;
         }
         if (answersToUse[index] !== undefined) {
-          let scoreChange = answersToUse[index] === question.answer ? 0.5 : -0.5;
+          const correctAnswer = question.options[question.answer];
+          let scoreChange = answersToUse[index] === correctAnswer ? 0.5 : -0.5;
           updatedScores[topic] += scoreChange;
           updatedScores[topic] = Math.max(
             0,
