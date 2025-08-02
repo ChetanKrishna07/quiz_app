@@ -104,7 +104,20 @@ export const generateQuiz = async (
 ) => {
   const questions = [];
   const topicsToUse = topics.length > 0 ? topics : ["general"];
+
+  const response = await getUserScores(user_id)
+  const user_topic_scores = response.data.topic_scores
+
+  const all_topics = user_topic_scores.map((score) => Object.keys(score)[0]);
+
+  const current_topic_scores = user_topic_scores.filter((score) => topicsToUse.includes(Object.keys(score)[0]));
+
+  console.log("User topic scores:", user_topic_scores);
+  console.log("All topics:", all_topics);
+  console.log("Current topic scores:", current_topic_scores);
+
   
+
   // Create a more diverse topic selection pattern
   const topicSelection = [];
   for (let i = 0; i < numQuestions; i++) {
@@ -114,9 +127,6 @@ export const generateQuiz = async (
     topicSelection.push(topic);
   }
 
-  const topic_scores = await getUserScores(user_id);
-  console.log("User topic scores:", topic_scores);
-  
   // Shuffle the topic selection to add more variety
   for (let i = topicSelection.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
