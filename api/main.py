@@ -54,7 +54,7 @@ class GenerateDocumentNameRequest(BaseModel):
 
 @app.get("/")
 def read_root():
-    return {"message": "Hello, World CD with webhook test!"}
+    return {"message": "Hey! Looks like you just found access to the API! What did I do wrong? :) chetankrishna.edu@gmail.com"}
 
 @app.post("/parse_file")
 async def parse_file(file: UploadFile = File(...)):
