@@ -1,6 +1,8 @@
 import axios from "axios";
+import { getUserScores } from "./api";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000"
+// const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000"
+const API_BASE_URL = "http://localhost:8000"
 
 const extractTopics = async (textContent, currentTopics = []) => {
   try {
@@ -79,6 +81,7 @@ const parseQuizQuestion = async (question) => {
     parsed = parsed.replace(/\n```/g, "");
     parsed = parsed.replace(/^```/g, "");
     parsed = JSON.parse(parsed);
+    parsed.answer = Number(parsed.answer); // Ensure answer is a number
     return parsed;
   } catch (error) {
     console.error("Error parsing quiz question:", error);
@@ -96,7 +99,8 @@ export const generateQuiz = async (
   textContent,
   topics,
   previousQuestions,
-  numQuestions
+  numQuestions,
+  user_id
 ) => {
   const questions = [];
   const topicsToUse = topics.length > 0 ? topics : ["general"];
@@ -109,6 +113,9 @@ export const generateQuiz = async (
     const topic = topicsToUse[baseIndex];
     topicSelection.push(topic);
   }
+
+  const topic_scores = await getUserScores(user_id);
+  console.log("User topic scores:", topic_scores);
   
   // Shuffle the topic selection to add more variety
   for (let i = topicSelection.length - 1; i > 0; i--) {

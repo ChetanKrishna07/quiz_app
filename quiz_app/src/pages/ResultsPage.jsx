@@ -100,7 +100,8 @@ export const ResultsPage = () => {
             </h2>
             {questions.map((question, index) => {
               const userAnswer = userAnswers[index];
-              const isCorrect = userAnswer === question.answer;
+              const correctAnswer = question.options[question.answer];
+              const isCorrect = userAnswer === correctAnswer;
               return (
                 <div key={index} className="bg-gray-50 rounded-lg p-3 sm:p-4 lg:p-6">
                   <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4 mb-3 sm:mb-4">
@@ -134,7 +135,7 @@ export const ResultsPage = () => {
                           Correct answer:
                         </span>
                         <span className="px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium bg-green-100 text-green-800 inline-block text-center">
-                          {question.answer} ✓
+                          {question.options[question.answer]} ✓
                         </span>
                       </div>
                     )}

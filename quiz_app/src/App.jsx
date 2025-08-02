@@ -143,7 +143,8 @@ function App() {
         textContent,
         selectedTopics,
         previousQuestions,
-        numQuestions
+        numQuestions,
+        activeUser
       );
       
       // Add questions to database
@@ -268,6 +269,7 @@ function App() {
                   setUserScores={updateUserScoresInDB}
                   activeUser={activeUser}
                   handleGenerateQuiz={handleGenerateQuiz}
+                  
                 />
               </ProtectedRoute>
             }
