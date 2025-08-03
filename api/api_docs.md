@@ -1,7 +1,7 @@
 # Quiz App API Documentation
 
 ## Overview
-This is a FastAPI-based quiz application that provides file parsing capabilities and user management with MongoDB integration.
+This is a FastAPI-based quiz application that provides file parsing capabilities, user management, document management, and AI-powered features with MongoDB integration. The system automatically manages topic scoring and provides intelligent content analysis.
 
 ## Base URL
 ```
@@ -237,7 +237,7 @@ curl -X PUT "http://localhost:8000/users/user123/scores" \
 ## Document Management Endpoints
 
 ### 1. Create Document
-Create a new document for a user.
+Create a new document for a user. New topics are automatically added to user scores with default value 0.0.
 
 **Endpoint:** `POST /documents`
 
@@ -247,9 +247,9 @@ Create a new document for a user.
   "user_id": "string",
   "title": "string",
   "document_content": "string",
-  "topic_scores": [
-    {"mathematics": 8.5},
-    {"science": 9.2}
+  "topics": [
+    "mathematics",
+    "science"
   ],
   "questions": [
     "What is the capital of France?",
@@ -267,9 +267,9 @@ Create a new document for a user.
     "user_id": "user123",
     "title": "Physics Notes",
     "document_content": "Content of the document...",
-    "topic_scores": [
-      {"mathematics": 8.5},
-      {"science": 9.2}
+    "topics": [
+      "mathematics",
+      "science"
     ],
     "questions": [
       "What is the capital of France?",
@@ -289,11 +289,11 @@ Create a new document for a user.
 ```bash
 curl -X POST "http://localhost:8000/documents" \
      -H "Content-Type: application/json" \
-     -d '{"user_id": "user123", "title": "Physics Notes", "document_content": "Content...", "topic_scores": [{"mathematics": 8.5}], "questions": ["What is the capital of France?"]}'
+     -d '{"user_id": "user123", "title": "Physics Notes", "document_content": "Content...", "topics": ["mathematics", "science"], "questions": ["What is the capital of France?"]}'
 ```
 
 ### 2. Get All Documents
-Retrieve all documents, optionally filtered by user_id.
+Retrieve all documents with topics and user scores, optionally filtered by user_id.
 
 **Endpoint:** `GET /documents`
 - Optional query parameter: `user_id`
@@ -308,9 +308,13 @@ Retrieve all documents, optionally filtered by user_id.
       "user_id": "user123",
       "title": "Physics Notes",
       "document_content": "Content of the document...",
-      "topic_scores": [
-        {"mathematics": 8.5},
-        {"science": 9.2}
+      "topics": [
+        "mathematics",
+        "science"
+      ],
+      "topics_with_scores": [
+        {"topic": "mathematics", "user_score": 8.5},
+        {"topic": "science", "user_score": 9.2}
       ],
       "questions": [
         "What is the capital of France?"
@@ -332,7 +336,7 @@ curl -X GET "http://localhost:8000/documents?user_id=user123"
 ```
 
 ### 3. Get a Single Document
-Retrieve a document by its ID.
+Retrieve a document by its ID with topics and user scores.
 
 **Endpoint:** `GET /documents/{document_id}`
 
@@ -345,9 +349,13 @@ Retrieve a document by its ID.
     "user_id": "user123",
     "title": "Physics Notes",
     "document_content": "Content of the document...",
-    "topic_scores": [
-      {"mathematics": 8.5},
-      {"science": 9.2}
+    "topics": [
+      "mathematics",
+      "science"
+    ],
+    "topics_with_scores": [
+      {"topic": "mathematics", "user_score": 8.5},
+      {"topic": "science", "user_score": 9.2}
     ],
     "questions": [
       "What is the capital of France?"
@@ -389,17 +397,18 @@ Delete a document by its ID.
 curl -X DELETE "http://localhost:8000/documents/507f1f77bcf86cd799439011"
 ```
 
-### 5. Update Document Scores
-Replace all topic scores for a document.
+### 5. Update Document Topics
+Update the topics for a document. New topics are automatically added to user scores with default value 0.0.
 
-**Endpoint:** `PUT /documents/{document_id}/scores`
+**Endpoint:** `PUT /documents/{document_id}/topics`
 
 **Request:**
 ```json
 {
-  "topic_scores": [
-    {"mathematics": 9.0},
-    {"science": 8.7}
+  "topics": [
+    "mathematics",
+    "science",
+    "physics"
   ]
 }
 ```
@@ -413,9 +422,10 @@ Replace all topic scores for a document.
     "user_id": "user123",
     "title": "Physics Notes",
     "document_content": "Content of the document...",
-    "topic_scores": [
-      {"mathematics": 9.0},
-      {"science": 8.7}
+    "topics": [
+      "mathematics",
+      "science", 
+      "physics"
     ],
     "questions": [
       "What is the capital of France?"
@@ -423,7 +433,7 @@ Replace all topic scores for a document.
     "created_at": "2024-06-01T12:00:00Z",
     "updated_at": "2024-06-01T12:05:00Z"
   },
-  "message": "Document scores updated successfully"
+  "message": "Document topics updated successfully"
 }
 ```
 
@@ -433,9 +443,9 @@ Replace all topic scores for a document.
 
 **Example:**
 ```bash
-curl -X PUT "http://localhost:8000/documents/507f1f77bcf86cd799439011/scores" \
+curl -X PUT "http://localhost:8000/documents/507f1f77bcf86cd799439011/topics" \
      -H "Content-Type: application/json" \
-     -d '{"topic_scores": [{"mathematics": 9.0}, {"science": 8.7}]}'
+     -d '{"topics": ["mathematics", "science", "physics"]}'
 ```
 
 ### 6. Update Document Questions
@@ -463,9 +473,9 @@ Update the questions for a document (keeps only the last 10 questions).
     "user_id": "user123",
     "title": "Physics Notes",
     "document_content": "Content of the document...",
-    "topic_scores": [
-      {"mathematics": 9.0},
-      {"science": 8.7}
+    "topics": [
+      "mathematics",
+      "science"
     ],
     "questions": [
       "Explain Newton's second law.",
@@ -491,6 +501,103 @@ curl -X PUT "http://localhost:8000/documents/507f1f77bcf86cd799439011/questions"
 
 ---
 
+## AI-Powered Endpoints
+
+### 1. Extract Topics from Text
+Analyze text content and extract 1-4 key topics suitable for creating quiz questions.
+
+**Endpoint:** `POST /ai/extract-topics`
+
+**Request:**
+```json
+{
+  "text_content": "string",
+  "current_topics": ["existing_topic1", "existing_topic2"]
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "topics": ["Topic 1", "Topic 2", "Topic 3"]
+  }
+}
+```
+
+**Example:**
+```bash
+curl -X POST "http://localhost:8000/ai/extract-topics" \
+     -H "Content-Type: application/json" \
+     -d '{"text_content": "This document covers algebra and geometry concepts...", "current_topics": ["mathematics"]}'
+```
+
+### 2. Generate Quiz Question
+Generate a single, unique quiz question based on a specific topic and text content.
+
+**Endpoint:** `POST /ai/generate-quiz`
+
+**Request:**
+```json
+{
+  "text_content": "string",
+  "topic": "string",
+  "previous_questions": ["Previous question 1", "Previous question 2"]
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "question": "What is the capital of France?",
+    "options": ["Paris", "London", "Berlin", "Madrid"],
+    "answer": 0,
+    "topic": "geography"
+  }
+}
+```
+
+**Example:**
+```bash
+curl -X POST "http://localhost:8000/ai/generate-quiz" \
+     -H "Content-Type: application/json" \
+     -d '{"text_content": "France is a country in Europe...", "topic": "geography", "previous_questions": []}'
+```
+
+### 3. Generate Document Name
+Generate a concise document title based on content (maximum 60 characters).
+
+**Endpoint:** `POST /ai/generate-document-name`
+
+**Request:**
+```json
+{
+  "text_content": "string"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "title": "Introduction to European Geography"
+  }
+}
+```
+
+**Example:**
+```bash
+curl -X POST "http://localhost:8000/ai/generate-document-name" \
+     -H "Content-Type: application/json" \
+     -d '{"text_content": "This document provides an overview of European countries..."}'
+```
+
+---
+
 ## Data Models
 
 ### User Document Structure
@@ -512,8 +619,29 @@ curl -X PUT "http://localhost:8000/documents/507f1f77bcf86cd799439011/questions"
   "user_id": "string",
   "title": "string",
   "document_content": "string",
-  "topic_scores": [
-    {"topic": score}
+  "topics": [
+    "string"
+  ],
+  "questions": [
+    "string"
+  ],
+  "created_at": "ISODate",
+  "updated_at": "ISODate"
+}
+```
+
+### Document Response Structure (with User Scores)
+```json
+{
+  "_id": "ObjectId (auto-generated)",
+  "user_id": "string",
+  "title": "string",
+  "document_content": "string",
+  "topics": [
+    "string"
+  ],
+  "topics_with_scores": [
+    {"topic": "string", "user_score": number}
   ],
   "questions": [
     "string"
@@ -550,8 +678,8 @@ curl -X PUT "http://localhost:8000/documents/507f1f77bcf86cd799439011/questions"
   "user_id": "string",
   "title": "string",
   "document_content": "string",
-  "topic_scores": [
-    {"topic": score}
+  "topics": [
+    "string"
   ],
   "questions": [
     "string"
@@ -559,11 +687,11 @@ curl -X PUT "http://localhost:8000/documents/507f1f77bcf86cd799439011/questions"
 }
 ```
 
-#### UpdateScoresRequest (for Document)
+#### UpdateTopicsRequest (for Document)
 ```json
 {
-  "topic_scores": [
-    {"topic": score}
+  "topics": [
+    "string"
   ]
 }
 ```
@@ -585,7 +713,9 @@ curl -X PUT "http://localhost:8000/documents/507f1f77bcf86cd799439011/questions"
 - **Host:** localhost
 - **Port:** 27017
 - **Database:** quiz_app
-- **Collection:** users
+- **Collections:** 
+  - `users` - Store user profiles and topic scores
+  - `documents` - Store document content and topics
 
 ### Data Validation
 - User IDs cannot be empty or whitespace-only

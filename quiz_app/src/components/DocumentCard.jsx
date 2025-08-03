@@ -45,7 +45,7 @@ export const DocumentCard = ({ doc, navigate, handleDeleteDocument }) => {
       <div className="flex justify-between items-center text-xs sm:text-sm text-gray-500 mb-1 sm:mb-2">
         <span className="flex items-center gap-1">
           <span className="w-2 h-2 bg-blue-400 rounded-full"></span>
-          {doc.topic_scores?.length || 0} topics
+          {doc.topics_with_scores?.length || doc.topics?.length || 0} topics
         </span>
         <span className="flex items-center gap-1">
           <span className="w-2 h-2 bg-green-400 rounded-full"></span>

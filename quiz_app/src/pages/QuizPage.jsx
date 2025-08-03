@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { updateDocumentQuestions, updateDocumentScores } from "../utils/api";
+import { updateDocumentQuestions } from "../utils/api";
 
 export const QuizPage = ({
   questions: questionsProp,
@@ -95,22 +95,7 @@ export const QuizPage = ({
     return topicScores;
   };
 
-  const getCurrentTopicScores = (answers = userAnswers) => {
-    const currentScores = {};
-    localQuestions.forEach((question, index) => {
-      const topic = question.topic || "Unknown Topic";
-      if (!currentScores[topic]) {
-        currentScores[topic] = 0;
-      }
-      if (answers[index] !== undefined) {
-        const correctAnswer = question.options[question.answer];
-        const isCorrect = answers[index] === correctAnswer;
-        currentScores[topic] += isCorrect ? 0.5 : -0.5;
-        currentScores[topic] = Math.max(0, Math.min(10, currentScores[topic]));
-      }
-    });
-    return currentScores;
-  };
+
 
   // When quiz is finished, update scores and navigate to results
   const handleFinishQuiz = async (finalAnswers = null) => {
@@ -145,13 +130,6 @@ export const QuizPage = ({
           questionsList.push(question.question);
         });
         await updateDocumentQuestions(documentId, questionsList);
-        const currentScores = getCurrentTopicScores(answersToUse);
-        const documentTopicScores = Object.entries(currentScores).map(
-          ([topic, score]) => ({
-            [topic]: Math.max(0, Math.min(10, score)),
-          })
-        );
-        await updateDocumentScores(documentId, documentTopicScores);
       } catch (error) {
         console.error("Error updating document:", error);
       }

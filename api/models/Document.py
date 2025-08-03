@@ -31,7 +31,7 @@ class CreateDocumentRequest(BaseModel):
     user_id: str
     title: str
     document_content: str
-    topic_scores: List[Dict[str, float]] = []
+    topics: List[str] = []
     questions: List[str] = []
 
 
@@ -39,8 +39,8 @@ class UpdateQuestionsRequest(BaseModel):
     questions: List[str]
 
 
-class UpdateScoresRequest(BaseModel):
-    topic_scores: List[Dict[str, float]]
+class UpdateTopicsRequest(BaseModel):
+    topics: List[str]
 
 
 class Document(BaseModel):
@@ -48,7 +48,7 @@ class Document(BaseModel):
     user_id: str
     title: str
     document_content: str
-    topic_scores: List[Dict[str, float]] = []
+    topics: List[str] = []
     questions: List[str] = []
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
@@ -56,17 +56,20 @@ class Document(BaseModel):
 
 class DocumentDB:
     @staticmethod
-    def create_document(user_id: str, document_content: str, title: Optional[str] = None):
+    def create_document(user_id: str, document_content: str, title: Optional[str] = None, topics: Optional[List[str]] = None):
         """Create a new document"""
         try:
             # Generate a default title if none provided
             if title is None:
                 title = f"Document {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')}"
             
+            if topics is None:
+                topics = []
+            
             document_data = {
                 "user_id": user_id,
                 "title": title,
-                "topic_scores": [],
+                "topics": topics,
                 "document_content": document_content,
                 "created_at": datetime.utcnow(),
                 "updated_at": datetime.utcnow()
@@ -117,37 +120,14 @@ class DocumentDB:
             raise
 
     @staticmethod
-    def update_document_scores(document_id: str, topic_scores: List[Dict[str, float]]):
-        """Update topic scores for a document"""
+    def update_document_topics(document_id: str, topics: List[str]):
+        """Update topics for a document"""
         try:
-            # Get current document
-            doc = documents_collection.find_one({"_id": ObjectId(document_id)})
-            if not doc:
-                return None
-            
-            # Convert topic scores to the format stored in DB
-            scores_dict = {}
-            for score_item in topic_scores:
-                for topic, score in score_item.items():
-                    scores_dict[topic] = score
-            
-            # Update existing topic scores and add new ones
-            current_scores = {}
-            for score_item in doc.get("topic_scores", []):
-                for topic, score in score_item.items():
-                    current_scores[topic] = score
-            
-            current_scores.update(scores_dict)
-            
-            # Convert back to list format
-            updated_scores = [{topic: score} for topic, score in current_scores.items()]
-            
-            # Update the document
             result = documents_collection.update_one(
                 {"_id": ObjectId(document_id)},
                 {
                     "$set": {
-                        "topic_scores": updated_scores,
+                        "topics": topics,
                         "updated_at": datetime.utcnow()
                     }
                 }
@@ -156,12 +136,12 @@ class DocumentDB:
             if result.modified_count > 0:
                 updated_doc = documents_collection.find_one({"_id": ObjectId(document_id)})
                 updated_doc['_id'] = str(updated_doc['_id'])
-                logger.info(f"Updated document scores for document {document_id}")
+                logger.info(f"Updated document topics for document {document_id}")
                 return updated_doc
             return None
             
         except Exception as e:
-            logger.error(f"Error updating document scores for {document_id}: {e}")
+            logger.error(f"Error updating document topics for {document_id}: {e}")
             return None
 
     @staticmethod
@@ -175,4 +155,113 @@ class DocumentDB:
             return False
         except Exception as e:
             logger.error(f"Error deleting document {document_id}: {e}")
-            return False 
+            return False
+
+    @staticmethod
+    def get_document_with_user_scores(document_id: str):
+        """Get a document by ID with user scores merged for topics"""
+        try:
+            # Import UserDB inside method to avoid circular imports
+            from models.User import UserDB
+            
+            doc = documents_collection.find_one({"_id": ObjectId(document_id)})
+            if not doc:
+                return None
+            
+            doc['_id'] = str(doc['_id'])
+            
+            # Get user scores for this document's user
+            user = UserDB.get_user(doc['user_id'])
+            user_scores = {}
+            if user and user.get('topic_scores'):
+                for score_item in user['topic_scores']:
+                    for topic, score in score_item.items():
+                        user_scores[topic] = score
+            
+            # Add scores to document topics
+            doc['topics_with_scores'] = []
+            for topic in doc.get('topics', []):
+                doc['topics_with_scores'].append({
+                    'topic': topic,
+                    'user_score': user_scores.get(topic, 0.0)
+                })
+            
+            return doc
+        except Exception as e:
+            logger.error(f"Error getting document with user scores {document_id}: {e}")
+            return None
+
+    @staticmethod
+    def get_documents_by_user_with_scores(user_id: str):
+        """Get all documents for a user with user scores merged for topics"""
+        try:
+            # Import UserDB inside method to avoid circular imports
+            from models.User import UserDB
+            
+            docs = list(documents_collection.find({"user_id": user_id}))
+            
+            # Get user scores once
+            user = UserDB.get_user(user_id)
+            user_scores = {}
+            if user and user.get('topic_scores'):
+                for score_item in user['topic_scores']:
+                    for topic, score in score_item.items():
+                        user_scores[topic] = score
+            
+            # Process each document
+            for doc in docs:
+                doc['_id'] = str(doc['_id'])
+                
+                # Add scores to document topics
+                doc['topics_with_scores'] = []
+                for topic in doc.get('topics', []):
+                    doc['topics_with_scores'].append({
+                        'topic': topic,
+                        'user_score': user_scores.get(topic, 0.0)
+                    })
+            
+            return docs
+        except Exception as e:
+            logger.error(f"Error getting documents with user scores for user {user_id}: {e}")
+            raise
+
+    @staticmethod
+    def get_all_documents_with_scores():
+        """Get all documents with user scores merged for topics"""
+        try:
+            # Import UserDB inside method to avoid circular imports
+            from models.User import UserDB
+            
+            docs = list(documents_collection.find())
+            
+            # Cache user scores to avoid repeated DB calls
+            user_scores_cache = {}
+            
+            for doc in docs:
+                doc['_id'] = str(doc['_id'])
+                user_id = doc['user_id']
+                
+                # Get user scores from cache or DB
+                if user_id not in user_scores_cache:
+                    user = UserDB.get_user(user_id)
+                    user_scores = {}
+                    if user and user.get('topic_scores'):
+                        for score_item in user['topic_scores']:
+                            for topic, score in score_item.items():
+                                user_scores[topic] = score
+                    user_scores_cache[user_id] = user_scores
+                
+                user_scores = user_scores_cache[user_id]
+                
+                # Add scores to document topics
+                doc['topics_with_scores'] = []
+                for topic in doc.get('topics', []):
+                    doc['topics_with_scores'].append({
+                        'topic': topic,
+                        'user_score': user_scores.get(topic, 0.0)
+                    })
+            
+            return docs
+        except Exception as e:
+            logger.error(f"Error getting all documents with user scores: {e}")
+            raise 

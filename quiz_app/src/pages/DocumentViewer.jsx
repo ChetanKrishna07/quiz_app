@@ -30,12 +30,14 @@ export const DocumentViewer = ({
       const response = await getDocument(documentId);
       setDocument(response.data);
 
-      // Initialize selected topics from document's topic scores
-      if (response.data.topic_scores) {
-        const topics = response.data.topic_scores.map(
-          (scoreObj) => Object.keys(scoreObj)[0]
+      // Initialize selected topics from document's topics_with_scores or topics
+      if (response.data.topics_with_scores) {
+        const topics = response.data.topics_with_scores.map(
+          (item) => item.topic
         );
         setSelectedTopics(topics);
+      } else if (response.data.topics) {
+        setSelectedTopics(response.data.topics);
       }
     } catch (error) {
       console.error("Error loading document:", error);
@@ -209,21 +211,19 @@ export const DocumentViewer = ({
               <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">
                 Topic Scores
               </h3>
-              {document.topic_scores && document.topic_scores.length > 0 ? (
+              {document.topics_with_scores && document.topics_with_scores.length > 0 ? (
                 <div className="space-y-2 sm:space-y-3">
-                  {document.topic_scores.map((scoreObj, index) => {
-                    const topic = Object.keys(scoreObj)[0];
-                    const score = scoreObj[topic];
+                  {document.topics_with_scores.map((item, index) => {
                     return (
                       <div
                         key={index}
                         className="flex justify-between items-center"
                       >
                         <span className="text-xs sm:text-sm font-medium text-gray-700 truncate mr-2">
-                          {topic}
+                          {item.topic}
                         </span>
                         <span className="text-xs sm:text-sm font-bold text-blue-600 flex-shrink-0">
-                          {score}/10
+                          {item.user_score}/10
                         </span>
                       </div>
                     );
@@ -247,20 +247,19 @@ export const DocumentViewer = ({
                 <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                   Select Topics
                 </label>
-                {document.topic_scores && document.topic_scores.length > 0 ? (
+                {document.topics_with_scores && document.topics_with_scores.length > 0 ? (
                   <div className="space-y-2">
-                    {document.topic_scores.map((scoreObj, index) => {
-                      const topic = Object.keys(scoreObj)[0];
+                    {document.topics_with_scores.map((item, index) => {
                       return (
                         <label key={index} className="flex items-center">
                           <input
                             type="checkbox"
-                            checked={selectedTopics.includes(topic)}
-                            onChange={() => toggleTopic(topic)}
+                            checked={selectedTopics.includes(item.topic)}
+                            onChange={() => toggleTopic(item.topic)}
                             className="mr-2 w-4 h-4 sm:w-5 sm:h-5"
                           />
                           <span className="text-xs sm:text-sm text-gray-700 break-words">
-                            {topic}
+                            {item.topic}
                           </span>
                         </label>
                       );

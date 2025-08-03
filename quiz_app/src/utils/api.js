@@ -179,16 +179,16 @@ export const getDocument = async (documentId) => {
 };
 
 /**
- * Update all topic scores for a document
+ * Update topics for a document
  * @param {string} documentId - The document ID
- * @param {Array} topicScores - Array of topic score objects
+ * @param {Array} topics - Array of topic strings
  * @returns {Promise<Object>} - Response data
  */
-export const updateDocumentScores = async (documentId, topicScores) => {
+export const updateDocumentTopics = async (documentId, topics) => {
   try {
     const response = await axios.put(
-      `${API_BASE_URL}/documents/${documentId}/scores`,
-      { topic_scores: topicScores },
+      `${API_BASE_URL}/documents/${documentId}/topics`,
+      { topics: topics },
       { headers: { "Content-Type": "application/json" } }
     );
     return response.data;
