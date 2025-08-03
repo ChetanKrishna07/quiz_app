@@ -90,9 +90,7 @@ export const TopicSelectionPage = ({
         const documentData = {
           user_id: activeUser,
           document_content: textContent,
-          topic_scores: selectedTopics.map((topic) => ({
-            [topic]: updatedScores[topic] || 0,
-          })),
+          topics: selectedTopics,
           questions: [],
           title: documentName || "Untitled Document",
         };
