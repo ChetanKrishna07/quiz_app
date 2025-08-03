@@ -93,6 +93,10 @@ class GenerateDocumentNameRequest(BaseModel):
 def read_root():
     return {"message": "Hey! Looks like you just found access to the API! What did I do wrong? :) chetankrishna.edu@gmail.com"}
 
+@app.get("/version")
+def get_version():
+    return {"version": "1"}
+
 @app.post("/parse_file")
 async def parse_file(file: UploadFile = File(...)):
     try:
