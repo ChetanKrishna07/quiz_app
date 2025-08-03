@@ -5,7 +5,7 @@ from docx import Document as DocxDocument
 import pymongo
 import io
 from models.User import UserDB, User
-from models.Document import Document, CreateDocumentRequest, UpdateScoresRequest, UpdateQuestionsRequest
+from models.Document import Document, CreateDocumentRequest, UpdateTopicsRequest, UpdateQuestionsRequest, DocumentDB
 from pydantic import BaseModel
 from typing import Dict, List, Optional
 import uuid
@@ -15,8 +15,45 @@ from db import documents_collection
 from dotenv import load_dotenv
 import os
 import openai
+import json
+import logging
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 load_dotenv()
+
+# Helper function to ensure user has all topics with scores
+async def ensure_user_has_topics(user_id: str, topics: List[str]):
+    """Ensure user has all topics in their topic_scores, adding missing ones with score 0"""
+    if not topics:
+        return
+    
+    user = UserDB.get_user(user_id)
+    if user:
+        # Get current user scores as a dictionary
+        current_scores = {}
+        for score_item in user.get("topic_scores", []):
+            for topic, score in score_item.items():
+                current_scores[topic] = score
+        
+        # Check for missing topics and add them with score 0
+        topics_added = []
+        for topic in topics:
+            if topic not in current_scores:
+                current_scores[topic] = 0.0
+                topics_added.append(topic)
+        
+        # Update user scores if any topics were added
+        if topics_added:
+            updated_scores = [{topic: score} for topic, score in current_scores.items()]
+            UserDB.update_user_scores(user_id, updated_scores)
+            logger.info(f"Added topics {topics_added} with score 0 for user {user_id}")
+    else:
+        # If user doesn't exist, create user with topics having score 0
+        initial_scores = [{topic: 0.0} for topic in topics]
+        UserDB.create_user(user_id, initial_scores)
+        logger.info(f"Created user {user_id} with initial topics {topics}")
 
 app = FastAPI()
 
@@ -159,22 +196,28 @@ async def update_user_scores(user_id: str, request: UpdateUserScoresRequest):
 # Document API Endpoints
 @app.post("/documents")
 async def create_document(request: CreateDocumentRequest):
-    """Create a new document"""
+    """Create a new document and auto-add missing topics to user scores"""
     try:
         now = datetime.utcnow()
         
-        document_data = {
-            "user_id": request.user_id,
-            "title": request.title,
-            "document_content": request.document_content,
-            "topic_scores": request.topic_scores,
-            "questions": request.questions,
-            "created_at": now,
-            "updated_at": now
-        }
+        # First, check and update user's topic scores for any new topics
+        await ensure_user_has_topics(request.user_id, request.topics)
         
-        result = documents_collection.insert_one(document_data)
-        document_data["_id"] = str(result.inserted_id)
+        # Create the document
+        document_data = DocumentDB.create_document(
+            user_id=request.user_id,
+            document_content=request.document_content,
+            title=request.title,
+            topics=request.topics
+        )
+        
+        # Add questions if provided
+        if request.questions:
+            documents_collection.update_one(
+                {"_id": ObjectId(document_data["_id"])},
+                {"$set": {"questions": request.questions, "updated_at": now}}
+            )
+            document_data["questions"] = request.questions
         
         return {"success": True, "data": document_data, "message": "Document created successfully"}
     except Exception as e:
@@ -182,11 +225,10 @@ async def create_document(request: CreateDocumentRequest):
 
 @app.get("/documents/{document_id}")
 async def get_document(document_id: str):
-    """Get a specific document by ID"""
+    """Get a specific document by ID with topics and user scores"""
     try:
-        doc = documents_collection.find_one({"_id": ObjectId(document_id)})
+        doc = DocumentDB.get_document_with_user_scores(document_id)
         if doc:
-            doc["_id"] = str(doc["_id"])
             return {"success": True, "data": doc}
         else:
             raise HTTPException(status_code=404, detail=f"Document {document_id} not found")
@@ -195,66 +237,37 @@ async def get_document(document_id: str):
 
 @app.get("/documents")
 async def get_documents(user_id: Optional[str] = None):
-    """Get all documents, optionally filtered by user_id"""
+    """Get all documents with topics and user scores, optionally filtered by user_id"""
     try:
         if user_id:
-            docs = list(documents_collection.find({"user_id": user_id}))
+            docs = DocumentDB.get_documents_by_user_with_scores(user_id)
         else:
-            docs = list(documents_collection.find())
-        
-        for doc in docs:
-            doc["_id"] = str(doc["_id"])
+            docs = DocumentDB.get_all_documents_with_scores()
         
         return {"success": True, "data": docs}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@app.put("/documents/{document_id}/scores")
-async def update_document_scores(document_id: str, request: UpdateScoresRequest):
-    """Update topic scores for a document"""
+@app.put("/documents/{document_id}/topics")
+async def update_document_topics(document_id: str, request: UpdateTopicsRequest):
+    """Update topics for a document and auto-add missing topics to user scores"""
     try:
-        # Get current document
-        doc = documents_collection.find_one({"_id": ObjectId(document_id)})
+        # Get the document to find the user_id
+        doc = DocumentDB.get_document(document_id)
         if not doc:
             raise HTTPException(status_code=404, detail=f"Document {document_id} not found")
         
-        # Convert topic scores to the format stored in DB
-        scores_dict = {}
-        for score_item in request.topic_scores:
-            for topic, score in score_item.items():
-                scores_dict[topic] = score
+        user_id = doc['user_id']
         
-        # Update existing topic scores and add new ones
-        current_scores = {}
-        for score_item in doc.get("topic_scores", []):
-            for topic, score in score_item.items():
-                current_scores[topic] = score
+        # Check and update user's topic scores for any new topics
+        await ensure_user_has_topics(user_id, request.topics)
         
-        current_scores.update(scores_dict)
-        
-        # Convert back to list format
-        updated_scores = [{topic: score} for topic, score in current_scores.items()]
-        
-        # Update the document
-        result = documents_collection.update_one(
-            {"_id": ObjectId(document_id)},
-            {
-                "$set": {
-                    "topic_scores": updated_scores,
-                    "updated_at": datetime.utcnow()
-                }
-            }
-        )
-        
-        if result.modified_count > 0:
-            updated_doc = documents_collection.find_one({"_id": ObjectId(document_id)})
-            if updated_doc:
-                updated_doc["_id"] = str(updated_doc["_id"])
-                return {"success": True, "data": updated_doc, "message": "Document scores updated successfully"}
-            else:
-                raise HTTPException(status_code=500, detail="Failed to retrieve updated document")
+        # Update the document topics
+        updated_doc = DocumentDB.update_document_topics(document_id, request.topics)
+        if updated_doc:
+            return {"success": True, "data": updated_doc, "message": "Document topics updated successfully"}
         else:
-            raise HTTPException(status_code=500, detail="Failed to update document scores")
+            raise HTTPException(status_code=404, detail=f"Document {document_id} not found")
             
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
@@ -349,7 +362,7 @@ async def extract_topics(request: ExtractTopicsRequest):
         content = response.choices[0].message.content
         # Parse the response
         try:
-            import json
+
             # Clean up the response
             if content is None:
                 raise HTTPException(status_code=500, detail="Empty response from OpenAI")
@@ -417,7 +430,7 @@ async def generate_quiz(request: GenerateQuizRequest):
         content = response.choices[0].message.content
         # Parse the response
         try:
-            import json
+
             # Clean up the response
             if content is None:
                 raise HTTPException(status_code=500, detail="Empty response from OpenAI")
